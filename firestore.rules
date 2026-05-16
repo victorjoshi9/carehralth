@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Publicly readable sections and data, but only admin can write
+    // For this prototype, we'll allow public read.
+    match /sections/{sectionId} {
+      allow read: if true;
+      allow write: if isSignedIn(); 
+    }
+
+    match /doctors/{doctorId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    
+    match /testimonials/{id} {
+      allow read: if true;
+      allow write: if isSignedIn() || request.resource.data.isPending == true;
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "SectionConfig": {
+      "title": "Section Configuration",
+      "description": "Configuration for a specific page section",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "order": { "type": "number" },
+        "enabled": { "type": "boolean" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "enabled", "order"]
+    },
+    "Doctor": {
+      "title": "Doctor",
+      "description": "Medical specialist details",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "specialty": { "type": "string" },
+        "department": { "type": "string" },
+        "image": { "type": "string" },
+        "rating": { "type": "number" },
+        "status": { "type": "string", "enum": ["online", "offline", "busy"] }
+      }
+    }
+  },
+  "firestore": {
+    "sections": {
+      "schema": "SectionConfig",
+      "description": "Dynamic page sections"
+    },
+    "doctors": {
+      "schema": "Doctor",
+      "description": "Doctor directory"
+    }
+  }
+}
