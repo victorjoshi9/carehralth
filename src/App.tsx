@@ -4,7 +4,7 @@ import {
   ChevronRight, Activity, Phone, Search, Bell, User, 
   Menu, X, ShieldCheck, Clock, Smile, Baby, Camera,
   MessageSquare, HelpCircle, Star, Settings, Layout,
-  Layers, Database
+  Layers, Database, Play, Thermometer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, handleFirestoreError, OperationType } from './lib/firebase';
@@ -27,33 +27,14 @@ interface AppSection {
 // --- Components ---
 
 const GlobalBackground = () => (
-  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-    <div className="absolute inset-0 bg-[#f8fafc]" />
-    {/* Permanent Floating Elements that drift across the entire app background */}
-    <div className="absolute inset-0 opacity-40">
-       {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-         <Floating3DElement key={i} i={i} />
+  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FDFDFD]">
+    <div className="absolute inset-0 bg-radial-[circle_at_50%_50%] from-emerald-500/5 via-transparent to-transparent opacity-40" />
+    {/* Clean set of floating background elements */}
+    <div className="absolute inset-0 opacity-20">
+       {[Plus, Activity, Heart, ShieldCheck, Zap, Thermometer].map((icon, i) => (
+         <HealthcareElement key={i} icon={icon} i={i} />
        ))}
     </div>
-    {/* Large drifting gradient orbs */}
-    <motion.div 
-      animate={{ 
-        x: [0, 100, 0], 
-        y: [0, 50, 0],
-        scale: [1, 1.2, 1]
-      }}
-      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px]" 
-    />
-    <motion.div 
-      animate={{ 
-        x: [0, -80, 0], 
-        y: [0, 120, 0],
-        scale: [1, 1.1, 1]
-      }}
-      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      className="absolute bottom-[-5%] left-[-5%] w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px]" 
-    />
   </div>
 );
 
@@ -91,52 +72,37 @@ const SafeSpline = (props: any) => {
   return <Spline {...props} />;
 };
 
-const Floating3DElement = ({ i }: { i: number }) => {
-  const icons = [Plus, Activity, Heart, Zap, Smile, Baby];
-  const colors = [
-    'text-emerald-500 bg-emerald-500/20', 
-    'text-blue-500 bg-blue-500/20', 
-    'text-red-500 bg-red-500/20', 
-    'text-purple-500 bg-purple-500/20', 
-    'text-yellow-500 bg-yellow-500/20'
-  ];
-  const Icon = icons[i % icons.length];
-  const colorClass = colors[i % colors.length];
-  const isBalloon = i % 2 === 0;
-
+const HealthcareElement = ({ icon: Icon, i }: { icon: any, i: number }) => {
+  const isCapsule = i % 2 === 0;
+  
   return (
     <motion.div
-      initial={{ y: 0, x: 0, rotate: 0 }}
+      initial={{ opacity: 0, scale: 0 }}
       animate={{ 
-        y: [0, -150, 0],
-        x: [0, i % 2 === 0 ? 60 : -60, 0],
-        rotate: isBalloon ? [0, 20, -20, 0] : [0, 720],
-        scale: [1, 1.25, 1],
-        filter: ['blur(0px)', 'blur(1px)', 'blur(0px)']
+        opacity: [0, 0.4, 0],
+        y: [0, -120, 0],
+        x: [0, i % 2 === 0 ? 40 : -40, 0],
+        rotate: [0, 360],
+        scale: [1, 1.1, 1],
       }}
       transition={{ 
-        duration: 20 + i * 4, 
+        duration: 15 + i * 5, 
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "linear"
       }}
-      className="absolute pointer-events-none perspective-1000"
+      className="absolute pointer-events-none"
       style={{
-        left: `${(i * 15) % 90 + 5}%`,
-        top: `${(i * 20) % 70 + 10}%`,
-        opacity: i % 2 === 0 ? 0.35 : 0.2,
-        zIndex: i % 3 === 0 ? 10 : 0
+        left: `${(i * 20) % 80 + i * 2}%`,
+        top: `${(i * 15) % 70 + 20}%`,
+        zIndex: 5
       }}
     >
       <div className={`
-        ${isBalloon ? 'rounded-t-full rounded-b-[45%] w-20 h-24' : 'w-24 h-24 rounded-3xl animate-3d-coin'} 
-        border-[6px] border-white/60 flex items-center justify-center glass ${colorClass} shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-3xl
-        transform-gpu rotate-x-12 rotate-y-12
+        ${isCapsule ? 'w-10 h-20 rounded-full' : 'w-16 h-8 rounded-full'} 
+        border-2 border-emerald-500/20 flex items-center justify-center bg-white/20 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.05)]
       `}>
-        <Icon size={36} strokeWidth={2.5} className="drop-shadow-lg" />
+        <Icon size={20} className="text-emerald-500 opacity-60" />
       </div>
-      {isBalloon && (
-        <div className="w-[2px] h-32 bg-gradient-to-t from-transparent via-slate-300 to-slate-300 mx-auto opacity-30 mt-[-4px]" />
-      )}
     </motion.div>
   );
 };
@@ -144,7 +110,7 @@ const Floating3DElement = ({ i }: { i: number }) => {
 const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }: { children: React.ReactNode, title: string, subtitle?: string, id: string, fullWidth?: boolean, index?: number }) => (
   <section id={id} className={`${fullWidth ? 'w-full' : 'section-width'} py-16 lg:py-24 relative overflow-hidden`}>
     <div className="relative z-10">
-      <div className="mb-10 lg:mb-16 text-left lg:text-center relative z-20 px-4 lg:px-0">
+      <div className="mb-10 lg:mb-16 text-left lg:text-center relative z-20 px-6 lg:px-0">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -153,15 +119,15 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="text-4xl lg:text-7xl font-display font-bold text-slate-900 uppercase tracking-tighter leading-[0.8] mb-4"
+          className="text-4xl lg:text-7xl font-display font-medium text-slate-900 uppercase tracking-tighter leading-none mb-4 text-3d px-1"
         >
-          {title.split(' ').map((word, i) => (
-             <span key={i} className={i === 1 ? 'text-emerald-500 italic' : ''}>{word}{' '}</span>
+          {title.split(' ').map((word, j) => (
+             <span key={j} className={j === 1 ? 'text-rose-500 italic text-3d-red' : ''}>{word}{' '}</span>
           ))}
         </motion.h2>
         {subtitle && (
-          <div className="inline-block px-4 py-1.5 glass rounded-full border-emerald-50">
-            <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[8px] lg:text-[9px]">{subtitle}</p>
+          <div className="inline-block px-6 py-2 glass-glossy rounded-full">
+            <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[8px] lg:text-[10px]">{subtitle}</p>
           </div>
         )}
       </div>
@@ -172,17 +138,17 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
 
 const GallerySection = ({ index = 0 }: { index?: number }) => (
   <SectionWrapper id="gallery" title="Facility Gallery" subtitle="Take a look inside our Bikaner unit" index={index}>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 px-4 lg:px-0">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10 px-4 lg:px-0">
       {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
         <motion.div 
           key={i}
-          whileHover={{ y: -5 }}
-          className="aspect-square android-card flex items-center justify-center relative group cursor-pointer border-emerald-50/30"
+          whileHover={{ y: -8, scale: 1.02 }}
+          className="glass-neu aspect-square flex items-center justify-center relative group cursor-pointer border-white/40 bg-white/40"
         >
-          <div className="absolute inset-0 bg-emerald-50/10 flex items-center justify-center">
-            <Camera size={24} className="opacity-20 group-hover:scale-125 group-hover:opacity-100 transition-all text-emerald-600" />
+          <div className="absolute inset-4 glass-glossy rounded-[32px] flex items-center justify-center bg-emerald-50/20">
+            <Camera size={28} className="opacity-20 group-hover:scale-125 group-hover:opacity-100 transition-all text-emerald-600" />
           </div>
-          <div className="absolute inset-x-0 bottom-4 text-center text-[7px] lg:text-[8px] uppercase tracking-[0.2em] font-bold opacity-0 group-hover:opacity-100 transition-all text-emerald-600">Scan Point {i}</div>
+          <div className="absolute inset-x-0 bottom-8 text-center text-[8px] lg:text-[10px] uppercase tracking-[0.3em] font-bold opacity-0 group-hover:opacity-100 transition-all text-emerald-600">Scan Node {i}</div>
         </motion.div>
       ))}
     </div>
@@ -191,24 +157,24 @@ const GallerySection = ({ index = 0 }: { index?: number }) => (
 
 const TestimonialSection = ({ index = 0 }: { index?: number }) => (
   <SectionWrapper id="testimonials" title="Patient Pulse" subtitle="What the Bikaner community says" index={index}>
-    <div className="flex gap-6 overflow-x-auto no-scrollbar pb-10 px-4 lg:px-0 scroll-smooth">
+    <div className="flex gap-10 overflow-x-auto no-scrollbar pb-16 px-6 lg:px-0 scroll-smooth">
       {[
         { name: 'Rajesh K.', text: 'Expert treatment and high-tech facility. Gangashahar hub is a lifesaver.' },
         { name: 'Suman V.', text: 'The nexus pharmacy dispatch is incredibly fast. Best care for kids.' },
         { name: 'Amit S.', text: 'Autonomous diagnosis saved us 4 hours of travel. Truly revolutionary.' }
       ].map((t, i) => (
-        <div key={i} className="min-w-[280px] lg:min-w-[320px] android-card p-8 flex flex-col justify-between border-white/80 bg-white/60 backdrop-blur-md">
-           <div className="flex gap-1 text-yellow-500 mb-6">
-              {[1,2,3,4,5].map(j => <Star key={j} size={12} fill="currentColor" />)}
+        <div key={i} className="min-w-[320px] lg:min-w-[400px] glass-neu p-10 lg:p-12 flex flex-col justify-between border-white/80 bg-white/60">
+           <div className="flex gap-1.5 text-yellow-500 mb-8">
+              {[1,2,3,4,5].map(j => <Star key={j} size={16} fill="currentColor" stroke="none" />)}
            </div>
-           <p className="text-slate-600 italic font-light leading-relaxed mb-8 text-sm lg:text-base">"{t.text}"</p>
-           <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
+           <p className="text-slate-600 italic font-light leading-relaxed mb-10 text-base lg:text-lg">"{t.text}"</p>
+           <div className="flex items-center gap-5">
+              <div className="w-14 h-14 glass-neu !bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl shadow-emerald-500/20 !border-none">
                  {t.name[0]}
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-slate-900 text-xs">{t.name}</span>
-                <span className="text-[8px] uppercase tracking-widest text-emerald-600 font-bold">Verified Patient</span>
+                <span className="font-bold text-slate-900 text-sm lg:text-base">{t.name}</span>
+                <span className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold opacity-70">Verified Node Resident</span>
               </div>
            </div>
         </div>
@@ -218,30 +184,32 @@ const TestimonialSection = ({ index = 0 }: { index?: number }) => (
 );
 
 const EmergencyControl = ({ index = 0 }: { index?: number }) => (
-  <section id="emergency" className="section-width py-12 lg:py-24 relative overflow-hidden">
-    <div className="android-card bg-white p-8 lg:p-24 relative overflow-hidden shadow-2xl shadow-red-500/10 border-red-50/50">
+  <section id="emergency" className="w-full py-20 lg:py-32 px-6 lg:px-20 relative overflow-hidden">
+    <div className="glass-neu !bg-red-600 p-10 lg:p-28 relative overflow-hidden shadow-3xl border-none">
+       <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-red-500 to-transparent opacity-60" />
+       
        <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
           >
-             <div className="w-16 h-16 bg-red-500 rounded-[20px] flex items-center justify-center text-white shadow-xl shadow-red-500/30 mb-8 animate-pulse">
-                <Zap size={32} className="stroke-[3px]" />
+             <div className="w-16 h-16 glass-neu !bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white mb-10 shadow-2xl !border-white/30">
+                <Zap size={32} className="fill-white" />
              </div>
-             <h2 className="text-4xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-[0.9] tracking-tighter">
-                SOS <br /><span className="text-red-500 italic">Dispatch</span>
+             <h2 className="text-5xl lg:text-8xl font-display font-bold text-white mb-8 leading-none tracking-tighter text-3d !shadow-red-800/50">
+                EMERGENCY <br /><span className="opacity-80">DISPATCH</span>
              </h2>
-             <p className="text-sm lg:text-base text-slate-500 font-light mb-10 leading-relaxed max-w-sm">
-                Instant medical relay to our command center. Local Bikaner monitoring active.
+             <p className="text-lg lg:text-xl text-red-50 font-light mb-12 leading-relaxed max-w-sm opacity-90">
+                Instant medical relay to our Bikaner command center. Local 3D monitoring active.
              </p>
-             <button className="w-full sm:w-auto px-12 py-6 bg-red-500 text-white font-bold text-base rounded-[24px] shadow-2xl shadow-red-500/40 active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-4">
-                Call SOS Now <Phone size={20} />
+             <button className="glass-neu w-full sm:w-auto px-12 py-6 bg-white text-red-600 font-bold text-xs lg:text-sm shadow-2xl active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-4 !rounded-full">
+                Call SOS Node <Phone size={20} />
              </button>
           </motion.div>
-          <div className="hidden lg:flex items-center justify-center relative scale-125">
-             <div className="absolute w-64 h-64 border-8 border-red-500/5 rounded-full animate-ping" />
-             <div className="w-40 h-40 bg-red-50 rounded-full flex items-center justify-center shadow-inner">
-                <Activity size={60} className="text-red-500 animate-pulse" />
+          <div className="hidden lg:flex items-center justify-center relative">
+             <div className="absolute w-[400px] h-[400px] border-[20px] border-white/5 rounded-full animate-ping" />
+             <div className="w-64 h-64 glass-neu !bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-3xl">
+                <Activity size={100} className="text-white animate-pulse" />
              </div>
           </div>
        </div>
@@ -251,36 +219,38 @@ const EmergencyControl = ({ index = 0 }: { index?: number }) => (
 
 const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }) => (
   <SectionWrapper id="pharmacy" title="Nexus Pharmacy" subtitle="24/7 Medicine Relay" index={index}>
-    <div className="grid lg:grid-cols-2 gap-8 px-4 lg:px-0">
-      <div className="android-card p-10 bg-white/60 backdrop-blur-md border-emerald-50/50">
-        <h3 className="text-2xl font-display font-bold mb-8 text-slate-900">Inventory Status</h3>
-        <div className="space-y-6">
+    <div className="grid lg:grid-cols-2 gap-10 px-4 lg:px-0">
+      <div className="glass-neu p-12 bg-white/60 border-rose-50/50">
+        <h3 className="text-3xl font-display font-medium mb-10 text-slate-900 text-3d px-1">Inventory Status</h3>
+        <div className="space-y-8">
           {[
-            { l: 'Critical Meds', v: '98%', c: 'text-emerald-500' },
-            { l: 'Relay Drones', v: 'Active', c: 'text-blue-500' },
-            { l: 'Bikaner Nodes', v: '12 Active', c: 'text-slate-600' }
+            { l: 'Critical Meds', v: '98%', c: 'text-rose-500 text-3d-red' },
+            { l: 'Relay Drones', v: 'Active', c: 'text-slate-900' },
+            { l: 'Bikaner Nodes', v: '12 Hubs', c: 'text-slate-600' }
           ].map(i => (
-            <div key={i.l} className="flex justify-between items-center border-b border-slate-50 pb-4">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{i.l}</span>
-              <span className={`text-[11px] font-bold ${i.c} uppercase`}>{i.v}</span>
+            <div key={i.l} className="flex justify-between items-center border-b border-slate-100 pb-5">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">{i.l}</span>
+              <span className={`text-[12px] font-bold ${i.c} uppercase`}>{i.v}</span>
             </div>
           ))}
         </div>
-        <button className="w-full py-5 mt-10 bg-slate-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+        <button className="glass-neu-red w-full py-6 mt-12 text-white text-[11px] font-bold uppercase tracking-widest shadow-2xl active:scale-95 transition-all !rounded-full">
           Refill Prescription
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:gap-6">
+      <div className="grid grid-cols-2 gap-6 lg:gap-8">
         {[
-          { t: 'Rapid Dispatch', d: 'Bikaner within 15min', i: Zap, c: 'text-yellow-500' },
-          { t: 'Direct Supply', d: 'Nexus Verified', i: ShieldCheck, c: 'text-emerald-500' },
-          { t: 'Cold Chain', d: 'Managed Hubs', i: Database, c: 'text-blue-500' },
-          { i: MessageSquare, t: 'AI Guide', d: 'Dosage Support', c: 'text-purple-500' }
+          { t: 'Rapid Dispatch', d: 'Bikaner 15min', i: Zap, c: 'text-rose-500' },
+          { t: 'Direct Supply', d: 'Nexus Verified', i: ShieldCheck, c: 'text-rose-500' },
+          { t: 'Cold Chain', d: 'Managed Hubs', i: Database, c: 'text-slate-900' },
+          { i: MessageSquare, t: 'AI Guide', d: 'Dosage Support', c: 'text-indigo-500' }
         ].map((item, i) => (
-          <div key={i} className="android-card p-6 bg-white/40 backdrop-blur-md hover:bg-emerald-50 transition-colors group">
-            <item.i size={20} className={`${item.c} mb-3 group-hover:scale-110 transition-transform`} />
-            <h4 className="font-bold text-xs mb-1 text-slate-900">{item.t}</h4>
-            <p className="text-[9px] text-slate-400 leading-tight uppercase font-medium">{item.d}</p>
+          <div key={i} className="glass-neu p-8 bg-white/40 hover:bg-rose-50/50 transition-colors group">
+            <div className="w-12 h-12 glass-neu-red rounded-2xl flex items-center justify-center mb-6 shadow-sm !rounded-xl">
+               <item.i size={24} className="text-white group-hover:scale-110 transition-transform" />
+            </div>
+            <h4 className="font-bold text-sm lg:text-base mb-2 text-slate-900 uppercase tracking-tight">{item.t}</h4>
+            <p className="text-[10px] text-slate-400 leading-tight uppercase font-bold tracking-widest opacity-60">{item.d}</p>
           </div>
         ))}
       </div>
@@ -290,26 +260,26 @@ const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }
 
 const LaboratorySection = ({ index = 0 }: { index?: number }) => (
   <SectionWrapper id="labs" title="Laboratory Hub" subtitle="AI Molecular Diagnosis" index={index}>
-    <div className="android-card bg-slate-900 p-8 lg:p-24 text-white overflow-hidden">
+    <div className="glass-neu bg-slate-900 p-8 lg:p-24 text-white overflow-hidden border-none shadow-3xl">
       <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
         <div>
-          <div className="w-16 h-16 bg-emerald-500 rounded-[24px] flex items-center justify-center text-white mb-10 shadow-2xl shadow-emerald-500/20">
-            <Microscope size={32} />
+          <div className="w-20 h-20 glass-neu-red flex items-center justify-center text-white mb-10 shadow-2xl !border-none">
+            <Microscope size={40} />
           </div>
-          <h2 className="text-4xl lg:text-7xl font-display font-bold mb-8 uppercase leading-[0.9] tracking-tighter">Diagnostic <br /><span className="text-emerald-400 italic">Command</span></h2>
+          <h2 className="text-4xl lg:text-7xl font-display font-medium mb-8 uppercase leading-[0.85] tracking-tighter text-3d text-white">Diagnostic <br /><span className="text-rose-400 italic text-3d-red">Command</span></h2>
           <p className="text-slate-400 text-sm lg:text-base mb-12 leading-relaxed font-light max-w-sm">
             Real-time biometric analysis synced to your Nexus profile. Automated collection active.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-10 py-5 bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all">Book Analysis</button>
-            <button className="px-10 py-5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl font-bold uppercase tracking-widest text-[10px]">Results Hub</button>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <button className="glass-neu-red px-12 py-5 font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all !rounded-full">Book Analysis</button>
+            <button className="glass-neu !bg-white/10 !text-white px-12 py-5 border border-white/20 font-bold uppercase tracking-widest text-[10px] !rounded-full">Results Hub</button>
           </div>
         </div>
-        <div className="aspect-square bg-white/5 backdrop-blur-2xl rounded-[40px] flex items-center justify-center border border-white/10 relative group">
-          <Activity size={100} className="text-emerald-500/20 group-hover:scale-110 transition-transform duration-1000" />
-          <div className="absolute top-8 left-8 p-6 bg-white/10 backdrop-blur-3xl rounded-2xl border border-white/10">
-             <div className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Live Sync</div>
-             <div className="text-xl font-display font-bold">99.8% Precision</div>
+        <div className="aspect-square glass-glossy rounded-[60px] flex items-center justify-center border border-white/10 relative group bg-white/5">
+          <Activity size={120} className="text-rose-500/20 group-hover:scale-110 transition-transform duration-1000" />
+          <div className="absolute top-12 left-12 p-8 glass-neu bg-white/10 backdrop-blur-3xl border border-white/20">
+             <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Live Sync</div>
+             <div className="text-2xl font-display font-medium">99.8% Precision</div>
           </div>
         </div>
       </div>
@@ -319,7 +289,7 @@ const LaboratorySection = ({ index = 0 }: { index?: number }) => (
 
 const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) => (
   <SectionWrapper id="staff" title="Care Staff" subtitle="The heartbeat of Nexus Bikaner" index={index}>
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-8 px-4 lg:px-0">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-10 px-6 lg:px-0">
       {(items || [
         { name: 'Vijay', role: 'Support', dept: 'Admin' },
         { name: 'Sonal', role: 'Nurse', dept: 'ICU' },
@@ -329,16 +299,17 @@ const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) =
       ]).map((staff, i) => (
         <motion.div 
           key={i} 
-          whileHover={{ y: -5 }}
-          className="glass-glossy p-6 lg:p-10 text-center flex flex-col items-center group cursor-pointer rounded-[32px]"
+          whileHover={{ y: -10 }}
+          whileTap={{ scale: 0.95 }}
+          className="glass-neu p-8 lg:p-12 text-center flex flex-col items-center group cursor-pointer"
         >
-          <div className="w-16 h-16 lg:w-20 lg:h-20 bg-emerald-500/5 rounded-full mb-6 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-            <User size={32} />
+          <div className="w-16 h-16 lg:w-24 lg:h-24 bg-emerald-50 rounded-full mb-6 lg:mb-8 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 glass-neu !shadow-sm">
+            <User size={36} />
           </div>
-          <h5 className="font-bold text-slate-800 text-xs lg:text-sm whitespace-nowrap uppercase tracking-tight">{staff.name}</h5>
-          <p className="text-[7px] lg:text-[8px] font-bold text-emerald-600/40 uppercase tracking-[0.2em] mt-2">{staff.role}</p>
-          <div className="mt-4 px-3 py-1 bg-white/40 rounded-full text-[6px] lg:text-[7px] font-bold text-emerald-600 uppercase tracking-widest border border-white/50">
-             {staff.dept} Hub
+          <h5 className="font-bold text-slate-800 text-sm lg:text-lg whitespace-nowrap uppercase tracking-tight">{staff.name}</h5>
+          <p className="text-[8px] lg:text-[10px] font-bold text-emerald-600/60 uppercase tracking-[0.2em] mt-2">{staff.role}</p>
+          <div className="mt-4 px-4 py-1.5 glass-glossy rounded-full text-[7px] lg:text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
+             Node {staff.dept}
           </div>
         </motion.div>
       ))}
@@ -356,18 +327,18 @@ const CategoryScroll = () => {
     { n: 'Vision', i: Camera, c: 'text-orange-500' }
   ];
   return (
-    <div className="lg:hidden px-4 mb-4 mt-2 overflow-hidden">
-      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 scroll-smooth">
+    <div className="lg:hidden px-6 mb-6 mt-4 overflow-hidden">
+      <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 scroll-smooth">
         {cats.map(c => (
           <motion.div 
             key={c.n} 
             whileTap={{ scale: 0.9 }}
-            className="flex flex-col items-center gap-3 min-w-[70px]"
+            className="flex flex-col items-center gap-3 min-w-[80px]"
           >
-            <div className="w-16 h-16 bg-white/60 backdrop-blur-xl rounded-[24px] flex items-center justify-center shadow-lg shadow-slate-200/50 border border-white/80">
+            <div className="w-16 h-16 glass-neu flex items-center justify-center border border-white/50 shadow-lg !bg-white/40">
                <c.i size={24} className={c.c} />
             </div>
-            <span className="text-[8px] font-bold uppercase text-slate-800 tracking-[0.1em]">{c.n}</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{c.n}</span>
           </motion.div>
         ))}
       </div>
@@ -376,83 +347,158 @@ const CategoryScroll = () => {
 };
 
 const Hero = ({ config }: { config: AppSection }) => (
-  <section id="hero" className="relative min-h-[85vh] lg:min-h-screen flex items-center overflow-hidden pt-24 lg:pt-20">
-    <div className="section-width grid lg:grid-cols-2 gap-12 items-center relative z-10 w-full">
+  <section id="hero" className="relative min-h-screen bg-[#FDFDFD] overflow-hidden flex flex-col lg:flex-row">
+    {/* Animated Background Stroke */}
+    <div className="absolute inset-x-0 top-0 h-screen pointer-events-none opacity-5">
+      <svg className="w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+        <path d="M0,500 Q250,200 500,500 T1000,500" fill="none" stroke="#ef4444" strokeWidth="20" className="animated-stroke" />
+      </svg>
+    </div>
+
+    {/* Left Content Side */}
+    <div className="flex-1 flex flex-col justify-center px-8 lg:px-24 py-20 lg:py-0 relative z-20">
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-left px-4 lg:px-0 mt-8 lg:mt-0"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
       >
-        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/40 backdrop-blur-md rounded-full mb-6 border-white/80 shadow-sm">
-          <Activity size={12} className="text-emerald-500 animate-pulse" />
-          <span className="text-[8px] lg:text-[10px] font-bold text-emerald-600 uppercase tracking-[0.3em]">System Online</span>
+        <div className="flex items-center gap-4 mb-12">
+          <div className="w-14 h-14 glass-neu-red flex items-center justify-center text-white shadow-2xl !rounded-2xl">
+            <Plus size={32} strokeWidth={4} />
+          </div>
+          <div className="px-5 py-2 glass-glossy rounded-full border border-red-100/50">
+             <span className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.4em]">Nexus Core Active</span>
+          </div>
         </div>
-        <h1 className="text-5xl lg:text-8xl font-display font-bold leading-[0.82] text-slate-900 mb-8 uppercase tracking-tighter">
-          Divyam <br />
-          <span className="text-emerald-500 italic">Nexus Hub</span>
+
+        <div className="relative mb-8 h-[100px] lg:h-[180px] w-full">
+           <svg className="w-full h-full overflow-visible" viewBox="0 0 800 200">
+             <defs>
+               <linearGradient id="roseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                 <stop offset="0%" stopColor="#ef4444" />
+                 <stop offset="100%" stopColor="#e11d48" />
+               </linearGradient>
+             </defs>
+             <text 
+               x="0" 
+               y="150" 
+               className="font-display font-bold text-[100px] lg:text-[150px] uppercase tracking-tighter stroke-rose-500/30 fill-transparent animated-stroke"
+               strokeWidth="2"
+             >
+               DIVYAM
+             </text>
+             <text 
+               x="5" 
+               y="150" 
+               className="font-display font-bold text-[100px] lg:text-[150px] uppercase tracking-tighter fill-slate-900"
+             >
+               DIVYAM
+             </text>
+           </svg>
+        </div>
+
+        <h1 className="text-6xl lg:text-[100px] font-display font-medium leading-[0.85] text-[#1D1D1F] mb-12 tracking-tighter text-3d px-1 relative">
+           <motion.span 
+             initial={{ opacity: 0, y: 40 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.2, duration: 0.8 }}
+             className="block"
+           >
+             Healthcare
+           </motion.span>
+           <motion.span 
+             initial={{ opacity: 0, scale: 0.9 }}
+             animate={{ opacity: 1, scale: 1 }}
+             transition={{ delay: 0.5, duration: 0.8 }}
+             className="text-3d-red italic"
+           >
+             Redefined
+           </motion.span>
         </h1>
-        <p className="text-sm lg:text-lg text-slate-500 max-w-lg mb-10 leading-relaxed font-light">
-          Old Post Office, Gangashahar. Bikaner's most advanced clinical autonomous node.
+
+        <p className="text-xl lg:text-2xl text-slate-500 max-w-lg mb-16 font-light leading-relaxed opacity-80">
+          Precision diagnostics & world-class care, integrated into Bikaner's most advanced autonomous node.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4 lg:mb-0">
+
+        <div className="flex flex-wrap gap-8 mb-20 lg:mb-32">
           <button 
             onClick={() => document.getElementById('doctors')?.scrollIntoView({ behavior: 'smooth' })}
-            className="w-full sm:w-auto px-10 py-5 bg-emerald-500 text-white font-bold rounded-3xl shadow-2xl shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all uppercase tracking-[0.2em] text-[10px]"
+            className="glass-neu-red !py-7 !px-16 !text-xs !font-bold !uppercase !tracking-widest !rounded-full shadow-[0_20px_50px_rgba(239,68,68,0.3)] hover:scale-110 active:scale-95 transition-all"
           >
-            Get Expert Care
+            Access Care Node
           </button>
           <button 
             onClick={() => document.getElementById('emergency')?.scrollIntoView({ behavior: 'smooth' })}
-            className="w-full sm:w-auto px-10 py-5 bg-white/40 backdrop-blur-xl text-slate-800 font-bold rounded-3xl active:scale-95 transition-all flex items-center justify-center gap-4 uppercase tracking-[0.2em] text-[10px] border border-white"
+            className="glass-neu !py-7 !px-16 !text-xs !font-bold !uppercase !tracking-widest !rounded-full flex items-center gap-4 text-slate-900 border border-slate-100 hover:bg-slate-50 transition-all shadow-xl"
           >
-            SOS <Phone size={14} className="text-red-500" />
+            Emergency SOS <Phone size={18} className="text-rose-500" />
           </button>
         </div>
-      </motion.div>
 
-      <div className="relative aspect-[4/3] lg:aspect-auto h-[300px] lg:h-[650px] flex items-center justify-center lg:mt-0 px-4 mb-8 lg:mb-0">
-        <Suspense fallback={<div className="animate-pulse w-full h-full bg-slate-100 rounded-[40px]" />}>
-           <div className="w-full h-full glass rounded-[40px] lg:rounded-[60px] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.08)] relative group border-white/50">
-              <SafeSpline 
-                scene="https://prod.spline.design/WG1dWYKv2NAjdcbA/scene.splinecode" 
-                onError={(e) => console.error("Spline Load Failed", e)}
-              />
-              <div className="absolute inset-x-4 lg:inset-x-6 bottom-4 lg:bottom-8 p-6 lg:p-10 bg-white/40 backdrop-blur-3xl rounded-[32px] lg:rounded-[40px] border-white/80 group-hover:translate-y-2 transition-transform shadow-xl">
-                 <div className="flex items-center justify-between">
-                    <div>
-                        <div className="text-[8px] lg:text-[10px] uppercase tracking-[0.4em] text-emerald-500 font-bold mb-2">Nexus Live</div>
-                        <div className="text-lg lg:text-2xl font-display font-bold text-slate-900 leading-none tracking-tight tracking-tighter">Status: Active</div>
-                    </div>
-                    <div className="w-10 lg:w-14 h-10 lg:h-14 bg-white/80 rounded-xl lg:rounded-2xl flex items-center justify-center text-emerald-500">
-                        <Activity size={20} className="animate-pulse" />
-                    </div>
-                 </div>
-              </div>
+        <div className="flex items-center justify-between lg:justify-start lg:gap-20 border-t border-slate-100 pt-12">
+           <div className="glass-neu p-8 rounded-[40px] bg-white/40 group hover:bg-white transition-colors">
+              <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-2 opacity-60">Status: Operational</div>
+              <div className="text-3xl font-display font-medium text-slate-900 tracking-tighter">12 Active Hubs</div>
            </div>
-        </Suspense>
-      </div>
+           <div className="flex items-center gap-6 group cursor-pointer">
+              <div className="w-16 h-16 rounded-full glass-neu-red flex items-center justify-center text-white group-hover:rotate-12 transition-transform shadow-2xl">
+                 <Play size={24} fill="currentColor" />
+              </div>
+              <span className="text-[11px] font-bold text-slate-900 uppercase tracking-[0.2em]">Watch Overview</span>
+           </div>
+        </div>
+      </motion.div>
+    </div>
+
+    {/* Right Spline Side */}
+    <div className="flex-1 relative min-h-[400px] lg:min-h-screen bg-[#F5F5F7] lg:rounded-l-[120px] overflow-hidden border-l border-white/50 shadow-inner">
+       <Suspense fallback={
+         <div className="w-full h-full flex items-center justify-center">
+            <div className="animate-spin w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full" />
+         </div>
+       }>
+          <div className="w-full h-full scale-110">
+             <SafeSpline 
+               scene="https://prod.spline.design/WG1dWYKv2NAjdcbA/scene.splinecode" 
+             />
+          </div>
+          
+          {/* Overlay Stats Tablet */}
+          <div className="absolute inset-x-10 bottom-14 lg:bottom-20 p-12 glass-neu border border-white shadow-3xl flex items-center justify-between group hover:-translate-y-4 transition-transform bg-white/60">
+             <div>
+                <div className="text-[11px] font-bold text-rose-500 uppercase tracking-[0.5em] mb-3">Live Bio-Feed</div>
+                <div className="text-3xl lg:text-5xl font-display font-medium text-slate-900 tracking-tighter text-3d px-1">Gangashahar Node</div>
+             </div>
+             <div className="w-20 h-20 glass-neu-red rounded-3xl flex items-center justify-center text-white shadow-2xl group-hover:rotate-12 transition-transform">
+                <Activity size={40} className="animate-pulse" />
+             </div>
+          </div>
+       </Suspense>
     </div>
   </section>
 );
 
 const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: number }) => (
   <SectionWrapper id="facilities" title="Core Facilities" subtitle="Advanced technology at your service" index={index}>
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 px-4 lg:px-0">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 px-4 lg:px-0">
       {config.items?.map((item, i) => (
         <motion.div
            key={i}
-           whileHover={{ y: -5 }}
-           className="android-card p-8 group border-emerald-50/30"
+           whileHover={{ y: -10 }}
+           className="glass-neu p-10 group border-white/50 bg-white/40 overflow-hidden"
         >
-          <div className="w-16 h-16 bg-emerald-50 rounded-[20px] flex items-center justify-center text-emerald-600 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
-            <Layers size={28} className="group-hover:rotate-12 transition-transform" />
+          <div className="w-18 h-18 glass-neu-red flex items-center justify-center text-white mb-8 group-hover:rotate-12 transition-all duration-500 !shadow-lg">
+            <Layers size={32} className="transition-transform" />
           </div>
-          <h3 className="text-xl font-display font-bold mb-3 text-slate-900">{item.title}</h3>
-          <p className="text-slate-500 text-sm leading-relaxed font-light">{item.desc}</p>
-          <div className="mt-8 flex items-center justify-between">
-             <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Active Node</span>
-             <ChevronRight size={16} className="text-emerald-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+          <h3 className="text-2xl font-display font-medium mb-4 text-slate-900 uppercase tracking-tight text-3d px-1">{item.title}</h3>
+          <p className="text-slate-500 text-base leading-relaxed font-light opacity-80">{item.desc}</p>
+          <div className="mt-10 flex items-center justify-between">
+             <div className="px-4 py-1.5 glass-glossy rounded-full border border-rose-100/50">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-rose-500">Active Node</span>
+             </div>
+             <div className="w-12 h-12 glass-neu-red rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all shadow-xl">
+                <ChevronRight size={20} />
+             </div>
           </div>
         </motion.div>
       ))}
@@ -461,45 +507,58 @@ const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: nu
 );
 
 const Navbar = () => (
-  <header className="fixed top-0 inset-x-0 z-50 pointer-events-none p-4 lg:p-6 lg:px-20">
-    <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
-      <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl px-4 py-2.5 rounded-[24px] shadow-sm border border-white/50">
-        <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <Plus className="text-white w-5 h-5 stroke-[4px]" />
+  <>
+    {/* Android Style Top Bar - Mobile Only */}
+    <div className="android-top-bar flex lg:hidden !bg-white/40 !backdrop-blur-3xl !border-white/50">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 glass-neu !bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+          <Plus size={22} strokeWidth={4} />
         </div>
-        <div>
-          <h1 className="text-sm font-display font-bold leading-none text-slate-900 tracking-tighter">DIVYAM Hub</h1>
-          <p className="text-[7px] font-bold text-emerald-500 uppercase tracking-[0.4em] mt-0.5">Bikaneri Node</p>
-        </div>
-      </div>
-      
-      <nav className="hidden lg:flex items-center gap-8 bg-white/50 backdrop-blur-2xl px-10 py-3.5 rounded-full shadow-lg border border-white/50">
-        {['About', 'Facility', 'Pharmacy', 'Emergency', 'Staff'].map(item => (
-          <a key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-emerald-500 transition-colors">
-            {item}
-          </a>
-        ))}
-      </nav>
-
-      <div className="flex items-center gap-2">
-        <button className="w-11 h-11 bg-white/80 backdrop-blur-xl rounded-[20px] flex items-center justify-center shadow-sm border border-white/50 text-slate-500 active:scale-95 transition-all">
-          <Bell size={18} />
-        </button>
-        <button className="hidden sm:flex px-6 py-3 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest rounded-[20px] shadow-xl hover:bg-emerald-500 transition-colors">
-          Console
-        </button>
+        <span className="font-display font-bold text-slate-900 tracking-tight text-lg">DIVYAM Hub</span>
       </div>
     </div>
-  </header>
+
+    {/* Web Header - Desktop Only */}
+    <header className="hidden lg:flex fixed top-0 inset-x-0 z-50 pointer-events-none p-10 px-24">
+      <div className="max-w-7xl mx-auto w-full flex items-center justify-between pointer-events-auto">
+        <div className="flex items-center gap-5 glass-neu px-8 py-4 border-white/50 shadow-2xl bg-white/60">
+          <div className="w-14 h-14 glass-neu-red flex items-center justify-center shadow-lg !border-none">
+            <Plus className="text-white w-7 h-7 stroke-[4px]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-display font-medium leading-none text-slate-900 tracking-tighter text-3d px-1">DIVYAM Hub</h1>
+            <p className="text-[9px] font-bold text-rose-500 uppercase tracking-[0.5em] mt-1.5 opacity-80">Bikaner Node v3.0</p>
+          </div>
+        </div>
+        
+        <nav className="flex items-center gap-12 glass-neu px-16 py-5 border-white shadow-2xl bg-white/40">
+          {['About', 'Facility', 'Pharmacy', 'Emergency', 'Staff'].map(item => (
+            <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500 hover:text-rose-500 transition-all hover:scale-110">
+              {item}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          <button className="w-14 h-14 glass-neu flex items-center justify-center text-slate-500 active:scale-95 transition-all !rounded-2xl">
+            <Bell size={22} />
+          </button>
+          <button className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:!bg-emerald-500 transition-colors !rounded-2xl shadow-3xl">
+            Nexus Console
+          </button>
+        </div>
+      </div>
+    </header>
+  </>
 );
 
 const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }) => (
-  <nav className="fixed bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] h-18 bg-white/90 backdrop-blur-3xl z-50 flex lg:hidden items-center justify-around px-4 rounded-[32px] border border-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+  <nav className="fixed bottom-0 inset-x-0 h-20 bg-white/95 backdrop-blur-3xl z-50 flex lg:hidden items-center justify-around px-2 border-t border-emerald-50 shadow-[0_-4px_24px_rgba(0,0,0,0.02)] pb-safe">
      {[
-       { id: 'home', icon: Home, label: 'Hub' },
-       { id: 'fac', icon: Layers, label: 'Nodes' },
+       { id: 'home', icon: Home, label: 'Home' },
+       { id: 'fac', icon: Layers, label: 'Labs' },
        { id: 'sos', icon: Zap, label: 'SOS' },
-       { id: 'docs', icon: User, label: 'Staff' }
+       { id: 'docs', icon: User, label: 'Admin' }
      ].map(item => {
        const isActive = active === item.id;
        return (
@@ -511,23 +570,24 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
              const el = document.getElementById(targetId);
              el?.scrollIntoView({ behavior: 'smooth' });
            }}
-           className="relative flex flex-col items-center justify-center w-16 h-full transition-all duration-300"
+           className="relative flex flex-col items-center justify-center w-full h-full transition-all duration-300"
          >
-           <motion.div 
-             animate={isActive ? { scale: [1, 1.1, 1], y: -2 } : { scale: 1, y: 0 }}
-             className={`flex items-center justify-center w-12 h-8 rounded-full mb-1 transition-colors ${isActive ? 'bg-emerald-500/10 text-emerald-600' : 'text-slate-400'}`}
-           >
-              <item.icon size={22} className={isActive ? 'stroke-[2.5px]' : 'stroke-[2px]'} />
-           </motion.div>
-           <span className={`text-[8px] font-bold uppercase tracking-widest transition-colors ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
+           <div className="relative mb-1">
+             {isActive && (
+               <motion.div 
+                 layoutId="nav-pill" 
+                 className="absolute inset-x-[-12px] inset-y-[-4px] bg-emerald-100 rounded-full -z-10" 
+                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+               />
+             )}
+             <item.icon 
+               size={24} 
+               className={`transition-colors duration-300 ${isActive ? 'text-emerald-900 stroke-[2.5px]' : 'text-slate-500 opacity-60'}`} 
+             />
+           </div>
+           <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-emerald-900' : 'text-slate-400'}`}>
              {item.label}
            </span>
-           {isActive && (
-             <motion.div 
-               layoutId="pill" 
-               className="absolute -bottom-1 w-1 h-1 bg-emerald-500 rounded-full" 
-             />
-           )}
          </button>
        );
      })}
@@ -617,25 +677,25 @@ export default function App() {
             {section.type === 'about' && (
               <SectionWrapper id="about" title="About Nexus" subtitle="The Bikaner medical legacy" index={i}>
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
-                  <div className="neu-flat p-12 rounded-[60px] aspect-square flex items-center justify-center">
-                     <div className="w-full h-full glass rounded-[40px] flex items-center justify-center border-white/50">
-                        <Smile size={100} className="text-emerald-500/30" />
+                  <div className="glass-neu p-16 rounded-[80px] aspect-square flex items-center justify-center bg-white/40">
+                     <div className="w-full h-full glass-glossy rounded-[60px] flex items-center justify-center border-white/50">
+                        <Smile size={120} className="text-emerald-500/40 animate-pulse" />
                      </div>
                   </div>
-                  <div>
-                    <h3 className="text-4xl font-display font-bold text-slate-900 mb-8 uppercase leading-tight">Decades of <br /><span className="text-emerald-500">Human Care</span> Reimagined</h3>
-                    <p className="text-lg text-slate-500 font-light leading-relaxed mb-10">
+                   <div>
+                    <h2 className="text-5xl lg:text-7xl font-display font-medium text-slate-900 mb-10 uppercase leading-[0.85] tracking-tighter text-3d">DECADES OF <br /><span className="text-rose-500 text-3d-red">HUMAN CARE</span></h2>
+                    <p className="text-xl lg:text-2xl text-slate-500 font-light leading-relaxed mb-12 opacity-80">
                       Located near the Old Post Office in Gangashahar, Divyam stands as a beacon of advanced medical integration. 
-                      Our multi-specialty approach combines the wisdom of senior experts with the precision of Nexus autonomous systems.
+                      Our multi-specialty approach combines expertise with Nexus 3D systems.
                     </p>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="neu-inset p-6 rounded-3xl">
-                         <div className="text-3xl font-display font-bold text-emerald-500">20+</div>
-                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Specialists</div>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
+                         <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">20+</div>
+                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Specialists</div>
                       </div>
-                      <div className="neu-inset p-6 rounded-3xl">
-                         <div className="text-3xl font-display font-bold text-emerald-500">50k+</div>
-                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Bikaner Patients</div>
+                      <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
+                         <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">50k+</div>
+                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Active Patients</div>
                       </div>
                     </div>
                   </div>
@@ -647,48 +707,44 @@ export default function App() {
             {section.type === 'facilities' && <FacilitySection config={section} index={i} />}
             {section.type === 'doctors' && (
                <SectionWrapper id="doctors" title="Expert Doctors" subtitle="Bikaner's leading medical input" index={i}>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 px-4 lg:px-0">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10 px-6 lg:px-0">
                     {section.items?.map((doc, i) => (
                       <motion.div 
                         key={i} 
-                        className="glass-glossy p-6 lg:p-8 text-center group cursor-pointer rounded-[40px] flex flex-col items-center"
+                        whileHover={{ y: -10 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="glass-neu p-8 lg:p-12 text-center group cursor-pointer flex flex-col items-center"
                       >
-                        <div className="relative w-24 lg:w-32 h-24 lg:h-32 mb-6">
-                           <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-40 transition-opacity" />
-                           <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-white/80 shadow-[0_10px_30px_rgba(0,0,0,0.1)] group-hover:border-emerald-500 transition-colors">
-                              {doc.image ? (
-                                <img 
-                                  src={doc.image} 
-                                  alt={doc.name} 
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                  referrerPolicy="no-referrer"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-emerald-500/5 flex items-center justify-center text-emerald-500">
-                                   <User size={48} />
-                                </div>
-                              )}
+                        <div className="relative w-28 lg:w-40 h-28 lg:h-40 mb-8 lg:mb-10">
+                           <div className="absolute inset-[-10px] glass-neu !rounded-full !bg-emerald-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white glass-glossy !p-1 shadow-2xl">
+                              <div className="w-full h-full rounded-full overflow-hidden">
+                                {doc.image ? (
+                                  <img 
+                                    src={doc.image} 
+                                    alt={doc.name} 
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                     <User size={48} />
+                                  </div>
+                                )}
+                              </div>
                            </div>
-                           <div className="absolute bottom-1 right-1 w-7 h-7 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center text-white shadow-xl shadow-emerald-500/20 scale-0 group-hover:scale-100 transition-transform">
-                              <Plus size={12} strokeWidth={3} />
+                           <div className="absolute bottom-2 right-2 w-10 h-10 glass-neu !bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform shadow-xl">
+                              <Plus size={16} strokeWidth={4} />
                            </div>
                         </div>
                         
-                        <h4 className="font-display text-sm lg:text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors uppercase tracking-tight leading-none mb-2">{doc.name}</h4>
-                        <p className="text-[8px] lg:text-[10px] font-bold uppercase text-emerald-600/40 tracking-[0.2em] mb-4">{doc.role}</p>
-                        
-                        <div className="flex justify-center gap-0.5 text-yellow-400/60 group-hover:text-yellow-400 mb-8 transition-colors">
-                           {[1,2,3,4,5].map(j => <Star key={j} size={8} fill="currentColor" stroke="none" />)}
-                        </div>
+                        <h4 className="font-display text-lg lg:text-2xl font-bold text-slate-900 leading-tight mb-2 uppercase tracking-tighter text-3d px-1">{doc.name}</h4>
+                        <p className="text-[10px] lg:text-[12px] font-bold uppercase text-emerald-600/60 tracking-widest mb-6 opacity-80">{doc.role}</p>
                         
                         <div className="w-full mt-auto">
-                           <button className="w-full py-3.5 bg-white/20 backdrop-blur-md rounded-2xl text-[9px] font-bold uppercase tracking-widest border border-white/50 text-slate-900 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all shadow-sm">
-                             Connect Node
+                           <button className="glass-neu w-full py-4 bg-slate-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all !rounded-full">
+                             Consult Node
                            </button>
-                           <div className="flex items-center justify-center gap-2 mt-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
-                              <span className="text-[6px] font-bold text-slate-400 uppercase tracking-widest">Active Relay</span>
-                           </div>
                         </div>
                       </motion.div>
                     ))}
@@ -702,64 +758,53 @@ export default function App() {
           </React.Fragment>
         ))}
 
-        {/* Static Map & Hub Location */}
-        <section className="section-width py-12 lg:py-24 mb-24 lg:mb-0 relative overflow-hidden">
-           <div className="grid lg:grid-cols-3 gap-8 px-4 lg:px-0">
-              <div className="lg:col-span-2 android-card bg-emerald-50/30 min-h-[400px] relative group overflow-hidden">
-                 <div className="absolute inset-0 flex flex-col items-center justify-center text-emerald-200 p-10 text-center">
-                    <MapPin size={80} className="mb-6 opacity-40 animate-bounce" />
-                    <p className="text-sm font-bold uppercase tracking-[0.4em] text-emerald-600">Bikaner Location Hub</p>
-                    <p className="text-xs mt-4 max-w-xs text-slate-400">Connected to the Gangashahar medical node next to Old Post Office.</p>
+        <section className="section-width py-20 lg:py-32 mb-24 lg:mb-0 relative overflow-hidden">
+           <div className="grid lg:grid-cols-3 gap-10 px-4 lg:px-0">
+              <div className="lg:col-span-2 glass-neu bg-emerald-50/30 min-h-[500px] relative group overflow-hidden border-none shadow-3xl">
+                 <div className="absolute inset-0 flex flex-col items-center justify-center text-emerald-200 p-10 text-center opacity-40">
+                    <MapPin size={100} className="mb-8 animate-bounce" />
+                    <p className="text-lg font-bold uppercase tracking-[0.4em] text-emerald-600">Bikaner Location Hub</p>
                  </div>
                  
-                 <div className="absolute bottom-6 lg:bottom-8 left-6 lg:left-8 right-6 lg:right-8 flex flex-col sm:flex-row gap-6 items-center justify-between">
-                    <div className="bg-white/80 backdrop-blur-3xl px-8 py-6 rounded-[32px] border border-white shadow-xl w-full sm:w-auto">
-                        <div className="flex items-center gap-3 mb-2">
-                           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                           <h5 className="font-bold text-slate-900 text-lg">Divyam Hospital</h5>
+                 <div className="absolute bottom-10 lg:bottom-12 left-10 lg:left-12 right-10 lg:right-12 flex flex-col lg:flex-row gap-10 items-center justify-between">
+                    <div className="glass-neu bg-white/80 backdrop-blur-3xl px-10 py-8 border-white shadow-2xl w-full lg:w-auto">
+                        <div className="flex items-center gap-4 mb-4">
+                           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                           <h5 className="font-bold text-slate-900 text-2xl uppercase tracking-tighter text-3d px-1">Divyam Node</h5>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Near Old Post Office, Gangashahar, Bikaner</p>
-                        <div className="flex gap-6 mt-6 pt-6 border-t border-slate-100">
-                           <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[9px] font-bold text-emerald-600 uppercase hover:text-emerald-700 transition-colors">
-                              <Search size={14}/> Google
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest opacity-60">Near Old Post Office, Gangashahar, Bikaner</p>
+                        <div className="flex gap-8 mt-10 pt-8 border-t border-slate-100">
+                           <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-emerald-600 uppercase hover:text-emerald-700 transition-colors">
+                              <Search size={18}/> Maps
                            </a>
-                           <a href="https://www.justdial.com/Bikaner/Divyam-Hospital-Near-Old-Post-Office-Gangashahar/9999PX151.X151.180215161042.Z1G3" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[9px] font-bold text-blue-600 uppercase hover:text-blue-700 transition-colors">
-                              <Zap size={14}/> Hub Node
+                           <a href="https://www.justdial.com/Bikaner/Divyam-Hospital-Near-Old-Post-Office-Gangashahar/9999PX151.X151.180215161042.Z1G3" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-blue-600 uppercase hover:text-blue-700 transition-colors">
+                              <Zap size={18}/> Nexus Page
                            </a>
                         </div>
-                    </div>
-                    <div className="flex -space-x-4">
-                       {[1,2,3,4].map(i => (
-                         <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-emerald-50 flex items-center justify-center shadow-lg overflow-hidden relative">
-                            <User size={20} className="text-emerald-300" />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-transparent" />
-                         </div>
-                       ))}
-                       <div className="w-12 h-12 rounded-full border-4 border-white bg-slate-900 text-white flex items-center justify-center shadow-lg text-[10px] font-bold">+12</div>
                     </div>
                  </div>
               </div>
-              <div className="android-card p-10 flex flex-col justify-between bg-white/60 backdrop-blur-md border-white">
+              <div className="glass-neu p-12 flex flex-col justify-between bg-white/60 border-white shadow-3xl">
                  <div>
-                    <div className="w-14 h-14 bg-emerald-500 rounded-[20px] flex items-center justify-center text-white mb-10 shadow-xl shadow-emerald-500/20">
-                       <Database size={28} />
+                    <div className="w-16 h-16 glass-neu !bg-emerald-500 rounded-[28px] flex items-center justify-center text-white mb-12 shadow-xl shadow-emerald-500/30 !border-none">
+                       <Database size={32} />
                     </div>
-                    <h3 className="text-4xl font-display font-bold uppercase mb-10 leading-[0.9] tracking-tighter text-slate-900">Nexus <br />Command <br /><span className="text-emerald-500 italic">Live</span></h3>
-                    <div className="space-y-6">
+                    <h3 className="text-5xl font-display font-bold uppercase mb-12 leading-[0.9] tracking-tighter text-slate-900 text-3d px-1">Nexus <br />Command <br /><span className="text-emerald-500 text-3d-emerald">Live</span></h3>
+                    <div className="space-y-8">
                        {[
-                         { l: 'Node Latency', v: '0.02ms', c: 'text-emerald-500' },
+                         { l: 'Node Latency', v: '0.02ms', c: 'text-emerald-500 text-3d-emerald' },
                          { l: 'Capacity', v: '94%', c: 'text-blue-500' },
                          { l: 'Accuracy', v: '99.9%', c: 'text-emerald-500' }
                        ].map(i => (
-                         <div key={i.l} className="flex justify-between items-center border-b border-slate-50 pb-4">
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">{i.l}</span>
-                            <span className={`text-[10px] font-bold uppercase ${i.c}`}>{i.v}</span>
+                         <div key={i.l} className="flex justify-between items-center border-b border-slate-100 pb-5">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">{i.l}</span>
+                            <span className={`text-[11px] font-bold uppercase ${i.c}`}>{i.v}</span>
                          </div>
                        ))}
                     </div>
                  </div>
-                 <button className="w-full h-18 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] rounded-[24px] shadow-2xl hover:bg-emerald-500 active:scale-95 transition-all text-[10px] mt-12">
-                    Enter Console
+                 <button className="glass-neu w-full h-20 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] rounded-full shadow-2xl hover:!bg-emerald-500 active:scale-95 transition-all text-xs mt-16 !border-none">
+                    Enter Console Hub
                  </button>
               </div>
            </div>
@@ -767,18 +812,20 @@ export default function App() {
 
         {/* FAQ Section */}
         <SectionWrapper id="faq" title="Nexus Inquiries" subtitle="Got questions about our relay systems?" index={sections.length}>
-           <div className="max-w-3xl mx-auto space-y-4 px-4 lg:px-0">
+           <div className="max-w-4xl mx-auto space-y-6 px-4 lg:px-0">
               {[
                 { q: 'What is Divyam Nexus?', a: 'A multi-specialty clinical workflow designed to organize specialists and diagnostic streams into one autonomous hub.' },
                 { q: 'Is emergency dispatch available 24/7?', a: 'Yes, our Bikaner dispatch unit is always active with an average 5-minute response time.' },
                 { q: 'How can I manage my data?', a: 'Through the Nexus Console, you have full transparency over your medical records and specialist input.' }
               ].map((faq, i) => (
-                <div key={i} className="android-card p-8 bg-white/60 backdrop-blur-md border-white/40">
-                   <h5 className="font-bold text-slate-800 flex items-center gap-3">
-                      <HelpCircle size={18} className="text-emerald-500" />
+                <div key={i} className="glass-neu p-10 bg-white/60 border-white/40 group hover:bg-emerald-50/30 transition-colors">
+                   <h5 className="font-bold text-slate-800 flex items-center gap-4 text-lg lg:text-xl uppercase tracking-tighter text-3d px-1">
+                      <div className="w-10 h-10 glass-neu !bg-emerald-50 flex items-center justify-center text-emerald-500 !shadow-sm">
+                         <HelpCircle size={20} />
+                      </div>
                       {faq.q}
                    </h5>
-                   <p className="mt-4 text-sm text-slate-500 font-light leading-relaxed">{faq.a}</p>
+                   <p className="mt-6 text-base text-slate-500 font-light leading-relaxed pl-14 opacity-80">{faq.a}</p>
                 </div>
               ))}
            </div>
@@ -786,30 +833,32 @@ export default function App() {
       </main>
 
       {/* Footer (Hiding on Mobile as requested) */}
-      <footer className="hidden lg:block bg-slate-900 pt-32 pb-20 px-6 lg:px-20 text-white rounded-t-[80px] relative z-10">
-         <div className="section-width grid grid-cols-2 lg:grid-cols-4 gap-12">
+      <footer className="hidden lg:block bg-slate-900 pt-40 pb-24 px-6 lg:px-20 text-white rounded-t-[100px] relative z-10 shadow-[0_-30px_60px_rgba(0,0,0,0.2)]">
+         <div className="section-width grid grid-cols-2 lg:grid-cols-4 gap-16">
             <div className="col-span-2">
-               <div className="flex items-center gap-3 mb-8">
-                  <div className="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                    <Plus size={24} className="stroke-[3px]" />
+               <div className="flex items-center gap-5 mb-10">
+                  <div className="w-14 h-14 glass-neu-red flex items-center justify-center !border-none">
+                    <Plus size={32} className="stroke-[4px]" />
                   </div>
-                  <h2 className="text-3xl font-display font-bold tracking-tighter">DIVYAM NEXUS</h2>
+                  <h2 className="text-5xl font-display font-medium tracking-tighter text-3d text-white !shadow-slate-800 uppercase">DIVYAM NEXUS</h2>
                </div>
-               <p className="text-slate-400 text-sm max-w-sm font-light leading-relaxed mb-10">
-                  Tomorrow's health architecture, serving Bikaner today. Autonomous specialists 
-                  integrated with human compassion.
+               <p className="text-slate-400 text-lg max-w-sm font-light leading-relaxed mb-12 opacity-80">
+                  Tomorrow's health architecture, serving Bikaner today with 3D precision and human compassion.
                </p>
             </div>
-            {['Nexus', 'Service', 'Legal'].map(cat => (
+            {['Nexus Hub', 'Services', 'Protocols'].map(cat => (
                <div key={cat}>
-                  <h5 className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-500 mb-8">{cat}</h5>
-                  <ul className="space-y-4 text-slate-400 text-sm font-light">
-                     <li>Console</li>
-                     <li>Doctors</li>
-                     <li>Privacy</li>
+                  <h5 className="text-[11px] font-bold uppercase tracking-[0.4em] text-rose-500 mb-10">{cat}</h5>
+                  <ul className="space-y-6 text-slate-400 text-sm font-light uppercase tracking-widest opacity-60">
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Digital Console</li>
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Expert Nodes</li>
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Privacy Chain</li>
                   </ul>
                </div>
             ))}
+         </div>
+         <div className="section-width border-t border-white/5 mt-24 pt-12 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-slate-600">© 2026 DIVYAM NEXUS HUB • BIKANER NODE 12</p>
          </div>
       </footer>
 
