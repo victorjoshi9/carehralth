@@ -1,6 +1,6 @@
 {
-  "name": "Divyam Nexus",
-  "description": "A futuristic healthcare command center with mobile-native PWA design, Supabase-powered IPD relay, and AI-driven diagnostics for the Bikaner hub.",
+  "name": "Divyam Hospital",
+  "description": "Premium multispeciality healthcare facility in Bikaner, providing comprehensive medical care with advanced technology and compassionate service since July 2024.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

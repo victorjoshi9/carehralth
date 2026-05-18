@@ -17,6 +17,8 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'fi
 import { supabase } from './lib/supabase';
 import NexusSpinner from './components/NexusSpinner';
 import AdminPanel from './admin/AdminPanel';
+import { Ambulance3D, XRayMachine3D, Lift3D } from './components/MedicalGraphics3D';
+const MapComponent = lazy(() => import('./components/MapComponent').then(m => ({ default: m.MapComponent })));
 
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
@@ -47,7 +49,7 @@ const GlobalBackground = () => {
       />
       
       {/* Flying Medical Items */}
-      <div className="absolute inset-0">
+     <div className="absolute inset-0">
          {[
            { icon: Ambulance, color: 'text-rose-500/20' },
            { icon: Pill, color: 'text-indigo-500/20' },
@@ -56,6 +58,8 @@ const GlobalBackground = () => {
            { icon: Plus, color: 'text-rose-600/10' },
            { icon: Microscope, color: 'text-blue-500/15' },
            { icon: Activity, color: 'text-emerald-500/10' },
+           { icon: Layers, color: 'text-slate-400/20' }, // Represents lift
+           { icon: Zap, color: 'text-yellow-500/20' },   // X-ray
          ].map((item, i) => (
            <FlyingMedicalBrand key={i} icon={item.icon} color={item.color} i={i} />
          ))}
@@ -208,29 +212,49 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
   </section>
 );
 
-const GallerySection = ({ index = 0 }: { index?: number }) => (
-  <SectionWrapper id="gallery" title="Facility Gallery" subtitle="Take a look inside our Bikaner unit" index={index}>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10 px-4 lg:px-0">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <motion.div 
-          key={i}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.1 }}
-          whileHover={{ y: -8, scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="glass-neu aspect-square flex items-center justify-center relative group cursor-pointer border-white/40 bg-white/40"
-        >
-          <div className="absolute inset-4 glass-glossy rounded-[32px] flex items-center justify-center bg-rose-50/20">
-            <Camera size={28} className="opacity-20 group-hover:scale-125 group-hover:opacity-100 transition-all text-rose-600" />
-          </div>
-          <div className="absolute inset-x-0 bottom-8 text-center text-[8px] lg:text-[10px] uppercase tracking-[0.3em] font-bold opacity-0 group-hover:opacity-100 transition-all text-rose-600">Scan Node {i}</div>
-        </motion.div>
-      ))}
-    </div>
-  </SectionWrapper>
-);
+const GallerySection = ({ index = 0 }: { index?: number }) => {
+  const galleryImages = [
+    { url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800', title: 'Modern OT' },
+    { url: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800', title: 'Patient Recovery' },
+    { url: 'https://images.unsplash.com/photo-1581595221477-9828d54d193d?auto=format&fit=crop&q=80&w=800', title: 'Pathology Lab' },
+    { url: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=800', title: 'Advanced Imaging' },
+    { url: 'https://images.unsplash.com/photo-1504439468489-c8920d796a29?auto=format&fit=crop&q=80&w=800', title: 'Consultation Room' },
+    { url: 'https://images.unsplash.com/photo-1586773860418-d3b38230fb1c?auto=format&fit=crop&q=80&w=800', title: 'Main Entrance' },
+    { url: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=80&w=800', title: 'Dental Suite' },
+    { url: 'https://images.unsplash.com/photo-1538108119102-36a4393bcaf1?auto=format&fit=crop&q=80&w=800', title: 'Maternity Ward' }
+  ];
+
+  return (
+    <SectionWrapper id="gallery" title="Facility Gallery" subtitle="Take a look inside Divyam Hospital" index={index}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10 px-4 lg:px-0">
+        {galleryImages.map((img, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            whileHover={{ y: -8, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="glass-neu aspect-square flex items-center justify-center relative group cursor-pointer border-white/40 bg-white/40 overflow-hidden"
+          >
+            <img 
+              src={img.url} 
+              alt={img.title}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+              <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-white mb-1">Nexus Node {i + 1}</div>
+              <div className="text-[12px] font-bold text-rose-400 uppercase tracking-widest">{img.title}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </SectionWrapper>
+  );
+};
 
 const TestimonialSection = ({ index = 0 }: { index?: number }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -318,11 +342,9 @@ const EmergencyControl = ({ index = 0 }: { index?: number }) => (
                 Call SOS Node <Phone size={20} />
              </motion.button>
           </motion.div>
-          <div className="hidden lg:flex items-center justify-center relative">
-             <div className="absolute w-[400px] h-[400px] border-[20px] border-white/5 rounded-full animate-ping" />
-             <div className="w-64 h-64 glass-neu !bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-3xl">
-                <Activity size={100} className="text-white animate-pulse" />
-             </div>
+          <div className="hidden lg:flex items-center justify-center relative scale-75">
+             <div className="absolute w-[500px] h-[500px] border-[20px] border-white/5 rounded-full animate-ping" />
+             <Ambulance3D />
           </div>
        </div>
     </div>
@@ -347,6 +369,7 @@ const DoctorCard = ({ doc, index }: { doc: any, index: number }) => {
                 <img 
                   src={doc.image} 
                   alt={doc.name} 
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                   referrerPolicy="no-referrer"
                 />
@@ -535,9 +558,9 @@ const LaboratorySection = ({ index = 0 }: { index?: number }) => (
             </motion.button>
           </div>
         </div>
-        <div className="aspect-square glass-glossy rounded-[60px] flex items-center justify-center border border-white/10 relative group bg-white/5">
-          <Activity size={120} className="text-rose-500/20 group-hover:scale-110 transition-transform duration-1000" />
-          <div className="absolute top-12 left-12 p-8 glass-neu bg-white/10 backdrop-blur-3xl border border-white/20">
+        <div className="aspect-square glass-glossy rounded-[60px] flex items-center justify-center border border-white/10 relative group bg-white/5 overflow-visible">
+          <XRayMachine3D />
+          <div className="absolute top-12 left-12 p-8 glass-neu bg-white/10 backdrop-blur-3xl border border-white/20 z-20">
              <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Live Sync</div>
              <div className="text-2xl font-display font-medium">99.8% Precision</div>
           </div>
@@ -547,16 +570,72 @@ const LaboratorySection = ({ index = 0 }: { index?: number }) => (
   </SectionWrapper>
 );
 
+const MissionVision = () => (
+  <section className="section-width py-24 relative overflow-hidden bg-slate-900 rounded-[60px] my-24 border border-white/5">
+    <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent" />
+    <div className="relative z-10 grid lg:grid-cols-2 gap-20 items-center px-10 lg:px-24">
+      <div>
+         <div className="w-16 h-16 glass-neu-red flex items-center justify-center mb-8">
+            <Heart size={32} className="text-white" />
+         </div>
+         <h2 className="text-4xl lg:text-6xl font-display font-bold text-white uppercase tracking-tighter mb-8 italic">Our Mission</h2>
+         <p className="text-xl text-slate-400 font-light leading-relaxed">
+            To deliver accessible, affordable, and high-quality healthcare services with a patient-centric approach, ensuring comfort, dignity, and healing for all.
+         </p>
+      </div>
+      <div>
+         <div className="w-16 h-16 glass-neu !bg-blue-500/20 flex items-center justify-center mb-8 !border-blue-500/30">
+            <ShieldCheck size={32} className="text-blue-400" />
+         </div>
+         <h2 className="text-4xl lg:text-6xl font-display font-bold text-white uppercase tracking-tighter mb-8 italic">Our Vision</h2>
+         <p className="text-xl text-slate-400 font-light leading-relaxed">
+            To become the most trusted healthcare destination in the region, recognized for clinical excellence, innovative treatments, and compassionate care.
+         </p>
+      </div>
+    </div>
+  </section>
+);
+
+const ComprehensiveServices = () => {
+  const services = [
+    { title: '24-Hour Services', items: ['Dialysis', 'Sample Collection', 'In-House Consultants', 'Emergency Service', 'ECG Service', 'Centralized Oxygen', 'Pharmacy'] },
+    { title: 'Treatment Services', items: ['Viral Fever', 'Chickenpox', 'Diarrhea', 'Malaria', 'Typhoid', 'Dengue', 'Infectious Disease', 'Chronic Management'] },
+    { title: 'Pediatric Services', items: ['Child Immunization', 'Vaccination', 'Newborn Care', 'Adolescent Health', 'Pediatric Emergency', 'Growth Monitoring'] },
+    { title: 'Specialized Tech', items: ['Modular OT', 'NICU/PICU', 'Digital X-Ray', 'Ultrasound', '24h ECG', 'Pathology Lab'] }
+  ];
+
+  return (
+    <SectionWrapper id="services" title="Nexus Care" subtitle="Comprehensive Medical Streams" index={8}>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 px-6 lg:px-0">
+        {services.map((cat, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.1 }}
+            className="glass-neu p-8 bg-white/40 border-white/60 hover:border-rose-200 transition-colors group"
+          >
+            <div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-6 border-b border-rose-100 pb-2">{cat.title}</div>
+            <ul className="space-y-4">
+              {cat.items.map((item, j) => (
+                <li key={j} className="flex items-center gap-3 text-sm text-slate-600 font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500/40 group-hover:bg-rose-500 transition-colors" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+    </SectionWrapper>
+  );
+};
+
 const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) => (
-  <SectionWrapper id="staff" title="Care Staff" subtitle="The heartbeat of Nexus Bikaner" index={index}>
+  <SectionWrapper id="staff" title="Care Staff" subtitle="The dedicated medical team at Divyam" index={index}>
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-10 px-6 lg:px-0">
-      {(items || [
-        { name: 'Vijay', role: 'Support', dept: 'Admin' },
-        { name: 'Sonal', role: 'Nurse', dept: 'ICU' },
-        { name: 'Karan', role: 'Relay', dept: 'Pharmacy' },
-        { name: 'Asha', role: 'Counsel', dept: 'Front' },
-        { name: 'Prem', role: 'Ops', dept: 'Nexus' }
-      ]).map((staff, i) => (
+      {items?.map((staff, i) => (
         <motion.div 
           key={i} 
           initial={{ opacity: 0, scale: 0.9 }}
@@ -573,7 +652,7 @@ const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) =
           <h5 className="font-bold text-slate-800 text-sm lg:text-lg whitespace-nowrap uppercase tracking-tight">{staff.name}</h5>
           <p className="text-[8px] lg:text-[10px] font-bold text-rose-600/60 uppercase tracking-[0.2em] mt-2">{staff.role}</p>
           <div className="mt-4 px-4 py-1.5 glass-glossy rounded-full text-[7px] lg:text-[9px] font-bold text-rose-600 uppercase tracking-widest">
-             Node {staff.dept}
+             {staff.dept}
           </div>
         </motion.div>
       ))}
@@ -884,7 +963,7 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
         <div className="w-10 h-10 glass-neu !bg-rose-500 rounded-xl flex items-center justify-center text-white">
           <Plus size={22} strokeWidth={4} />
         </div>
-        <span className="font-display font-bold text-slate-900 tracking-tight text-lg">DIVYAM Hub</span>
+        <span className="font-display font-bold text-slate-900 tracking-tight text-lg">Divyam Hub</span>
       </div>
       <div className="flex lg:hidden items-center gap-2">
         <button onClick={onAdminClick} className="w-10 h-10 glass-neu flex items-center justify-center text-rose-500">
@@ -901,8 +980,8 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
             <Plus className="text-white w-7 h-7 stroke-[4px]" />
           </div>
           <div>
-            <h1 className="text-xl font-display font-medium leading-none text-slate-900 tracking-tighter text-3d px-1">DIVYAM Hub</h1>
-            <p className="text-[9px] font-bold text-rose-500 uppercase tracking-[0.5em] mt-1.5 opacity-80">Bikaner Node v3.0</p>
+            <h1 className="text-xl font-display font-medium leading-none text-slate-900 tracking-tighter text-3d px-1">Divyam Hospital</h1>
+            <p className="text-[9px] font-bold text-rose-500 uppercase tracking-[0.5em] mt-1.5 opacity-80">Bikaner Care v1.0</p>
           </div>
         </div>
         
@@ -928,7 +1007,7 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
             onClick={onAdminClick}
             className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors !rounded-2xl shadow-3xl"
           >
-            Nexus Console
+            Patient Hub
           </motion.button>
         </div>
       </div>
@@ -1085,54 +1164,61 @@ export default function App() {
   useEffect(() => {
     // I'll simulate a fetch but provide default data for the demo
     const defaultSections: AppSection[] = [
-      { id: 'hero', type: 'hero', enabled: true, order: 0, title: 'Divyam Nexus Hub' },
-      { id: 'about', type: 'about', enabled: true, order: 0.5, title: 'Bikaner Legacy' },
-      { id: 'facilities', type: 'facilities', enabled: true, order: 1, title: 'Medical Services', items: [
-        { title: 'Pediatrics Unit', desc: 'Expert child care node with neonatal support systems.' },
-        { title: 'Gynaecology', desc: 'Comprehensive maternal care and surgical excellence.' },
-        { title: 'Nexus Pharmacy', desc: '24/7 automated medicine relay with Bikaner dispatch.' },
-        { title: 'Diagnostic Lab', desc: 'AI-assisted molecular diagnosis and blood analysis.' },
-        { title: 'ICU / Critical Care', desc: 'High-frequency monitoring and life-support integration.' },
-        { title: 'Operation Theatre', desc: 'Precision surgical environments for advanced procedures.' }
+      { id: 'hero', type: 'hero', enabled: true, order: 0, title: 'Divyam Hospital' },
+      { id: 'about', type: 'about', enabled: true, order: 0.5, title: 'Medical Excellence' },
+      { id: 'facilities', type: 'facilities', enabled: true, order: 1, title: 'Core Facilities', items: [
+        { title: 'Critical Care (ICU)', desc: '24/7 monitoring with advanced life-support and ventilators.' },
+        { title: 'NICU & PICU', desc: 'Specialized care for newborns and children with expert neonatologists.' },
+        { title: 'Modular OT', desc: 'Advanced surgical environments with modular design and sterilization.' },
+        { title: 'Diagnosis Lab', desc: '24/7 pathology offering CBC, Biochemistry, and Hormone analysis.' },
+        { title: 'Dialysis Unit', desc: 'Modern dialysis machines with expert nephrology support 24/7.' },
+        { title: 'Maternity Suite', desc: 'Safe delivery with experienced gynecologists and neonatal support.' }
       ]},
-      { id: 'pharmacy', type: 'pharmacy', enabled: true, order: 1.5, title: 'Nexus Pharmacy' },
+      { id: 'departments', type: 'facilities', enabled: true, order: 1.2, title: 'Specialized Centers', items: [
+        { title: 'Dental Center', desc: 'Cosmetic dentistry, implants, and painless root canal treatments.' },
+        { title: 'Child Development', desc: 'Growth monitoring, vaccination centre, and pediatric consultation.' },
+        { title: 'Diabetic Centre', desc: 'Specialized management for blood sugar and diet consultation.' },
+        { title: 'Women Wellness', desc: 'Comprehensive antenatal and gynecological health screening.' },
+        { title: 'Imaging Hub', desc: 'Digital X-Ray, Ultrasound, and 24-hour ECG services.' },
+        { title: 'Trauma Center', desc: '24-hour accident care with rapid response medical teams.' }
+      ]},
+      { id: 'pharmacy', type: 'pharmacy', enabled: true, order: 1.5, title: 'Subhman Pharmacy' },
       { id: 'labs', type: 'labs', enabled: true, order: 1.6, title: 'Laboratory Hub' },
       { id: 'doctors', type: 'doctors', enabled: true, order: 2, title: 'Expert Doctors', items: [
         { 
-          name: 'Dr. Sameer Khan', 
-          role: 'Pediatrics', 
-          specialization: 'Child Healthcare & Neonatology',
-          experience: '12+ Years',
-          bio: 'Dr. Sameer specializes in pediatric intensive care and advanced neonatology, ensuring the smallest patients receive the highest level of diagnostic precision.',
+          name: 'Dr. M.G. Choudhary', 
+          role: 'Senior Child Specialist', 
+          specialization: 'MBBS, MD (Pediatrics)',
+          experience: '20+ Years',
+          bio: 'Professor of Pediatrics at PBM Hospital with two decades of clinical and teaching experience in neonatal care and infectious diseases.',
           image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400' 
         },
         { 
-          name: 'Dr. Anjali Verma', 
-          role: 'Gynecology', 
-          specialization: 'Obstetrics & High-Risk Pregnancy',
-          experience: '15+ Years',
-          bio: 'With over 15 years of surgical experience, Dr. Anjali leads our maternity wing with a focus on minimally invasive gynecological procedures.',
+          name: 'Dr. Nisha Choudhary', 
+          role: 'Senior Dental Surgeon', 
+          specialization: 'BDS, Member Indian Dental Association (MIDA)',
+          experience: '10+ Years',
+          bio: 'Expert in painless dental treatments, cosmetic dentistry, and root canal therapy with a focus on preventive dental care.',
           image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400' 
         },
         { 
-          name: 'Dr. Vivek Sharma', 
-          role: 'Cardiology', 
-          specialization: 'Interventional Cardiology',
-          experience: '18+ Years',
-          bio: 'Dr. Vivek is a pioneer in complex cardiac interventions, bringing robotic-assisted surgical techniques to the heart of Bikaner.',
+          name: 'Dr. Ashish Dadhich', 
+          role: 'Internal Medicine', 
+          specialization: 'MBBS, MD (Internal Medicine), PGDCC',
+          experience: '12+ Years',
+          bio: 'Specialist in diabetes management, hypertension control, and chronic disease management with over 12 years of clinical expertise.',
           image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400' 
-        },
-        { 
-          name: 'Dr. Pooja Devi', 
-          role: 'Dentistry', 
-          specialization: 'Cosmetic Dentistry & Implantology',
-          experience: '9+ Years',
-          bio: 'Dr. Pooja combines artistic precision with medical advanced implants, specializing in complete smile reconstruction and digital dentistry.',
-          image: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=400' 
         }
       ]},
-      { id: 'staff', type: 'staff', enabled: true, order: 3, title: 'Friendly Staff' },
+      { id: 'staff', type: 'staff', enabled: true, order: 3, title: 'Dedicated Team', items: [
+        { name: 'Ramprasad Dudi', role: 'Nursing Officer', dept: 'Medical' },
+        { name: 'Amit Kumar Sigar', role: 'Pharmacist', dept: 'Pharmacy' },
+        { name: 'Devkishan Gedhar', role: 'Lab Technician', dept: 'Labs' },
+        { name: 'Madhusudan Joshi', role: 'Receptionist', dept: 'Admin' },
+        { name: 'Khusboo', role: 'Dental Assistant', dept: 'Dental' }
+      ]},
       { id: 'gallery', type: 'gallery', enabled: true, order: 4, title: 'Facility Gallery' },
+      { id: 'location', type: 'location', enabled: true, order: 4.5, title: 'Nexus Geocode' },
       { id: 'testimonials', type: 'testimonials', enabled: true, order: 5, title: 'Patient Pulse' },
       { id: 'emergency', type: 'emergency', enabled: true, order: 6, title: 'SOS Dispatch' }
     ];
@@ -1174,36 +1260,47 @@ export default function App() {
               </>
             )}
             {section.type === 'about' && (
-              <SectionWrapper id="about" title="About Nexus" subtitle="The Bikaner medical legacy" index={i}>
-                <div className="grid lg:grid-cols-2 gap-16 items-center">
-                  <div className="glass-neu p-16 rounded-[80px] aspect-square flex items-center justify-center bg-white/40">
-                     <div className="w-full h-full glass-glossy rounded-[60px] flex items-center justify-center border-white/50">
-                        <Smile size={120} className="text-rose-500/40 animate-pulse" />
-                     </div>
-                  </div>
-                  <div>
-                    <h2 className="text-5xl lg:text-7xl font-display font-medium text-slate-900 mb-10 uppercase leading-[0.85] tracking-tighter text-3d">DECADES OF <br /><span className="text-rose-500 text-3d-red">HUMAN CARE</span></h2>
-                    <p className="text-xl lg:text-2xl text-slate-500 font-light leading-relaxed mb-12 opacity-80">
-                      Located near the Old Post Office in Gangashahar, Divyam stands as a beacon of advanced medical integration. 
-                      Our multi-specialty approach combines expertise with Nexus 3D systems.
-                    </p>
-                    <div className="grid grid-cols-2 gap-8">
-                      <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
-                         <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">20+</div>
-                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Specialists</div>
-                      </div>
-                      <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
-                         <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">50k+</div>
-                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Active Patients</div>
+              <>
+                <SectionWrapper id="about" title="About Divyam" subtitle="Premier multispeciality healthcare" index={i}>
+                  <div className="grid lg:grid-cols-2 gap-16 items-center">
+                    <div className="glass-neu p-16 rounded-[80px] aspect-square flex items-center justify-center bg-white/40 overflow-visible relative">
+                       <div className="absolute inset-0 flex items-center justify-center scale-110">
+                          <Lift3D />
+                       </div>
+                       <div className="relative z-10 w-full h-full glass-glossy rounded-[60px] flex items-center justify-center border-white/50 bg-white/20">
+                          <ShieldCheck size={80} className="text-rose-500/40 animate-pulse" />
+                       </div>
+                    </div>
+                    <div>
+                      <h2 className="text-5xl lg:text-7xl font-display font-medium text-slate-900 mb-10 uppercase leading-[0.85] tracking-tighter text-3d">COMPASSIONATE <br /><span className="text-rose-500 text-3d-red">HEALING</span></h2>
+                      <p className="text-xl lg:text-2xl text-slate-500 font-light leading-relaxed mb-12 opacity-80">
+                        Established in July 2024, Divyam Hospital is a premier multispeciality facility in Gangashahar, Bikaner. 
+                        Our mission is to deliver accessible, affordable, and high-quality healthcare with clinical excellence.
+                      </p>
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
+                           <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">10+</div>
+                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Total Beds</div>
+                        </div>
+                        <div className="glass-neu p-10 rounded-[48px] bg-white/60 group hover:bg-rose-50 transition-colors">
+                           <div className="text-5xl font-display font-medium text-rose-500 text-3d-red">4.7★</div>
+                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 opacity-60">Patient Rating</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </SectionWrapper>
+                </SectionWrapper>
+                <MissionVision />
+              </>
             )}
             {section.type === 'pharmacy' && <PharmacySection index={i} />}
             {section.type === 'labs' && <LaboratorySection index={i} />}
-            {section.type === 'facilities' && <FacilitySection config={section} index={i} />}
+            {section.type === 'facilities' && (
+              <>
+                <FacilitySection config={section} index={i} />
+                {section.id === 'departments' && <ComprehensiveServices />}
+              </>
+            )}
             {section.type === 'doctors' && (
                <SectionWrapper id="doctors" title="Expert Doctors" subtitle="Bikaner's leading medical input" index={i}>
                   <Doctors items={section.items} />
@@ -1212,70 +1309,60 @@ export default function App() {
             )}
             {section.type === 'staff' && <StaffSection items={section.items} index={i} />}
             {section.type === 'gallery' && <GallerySection index={i} />}
+            {section.type === 'location' && (
+              <section className="section-width py-20 lg:py-32 mb-24 lg:mb-0 relative overflow-hidden">
+                <div className="grid lg:grid-cols-3 gap-10 px-4 lg:px-0">
+                  <div className="lg:col-span-2 min-h-[500px] relative group overflow-hidden rounded-[40px] shadow-3xl">
+                    <Suspense fallback={
+                      <div className="w-full h-full glass-neu bg-rose-50/30 flex items-center justify-center">
+                        <NexusSpinner />
+                      </div>
+                    }>
+                      <MapComponent />
+                    </Suspense>
+                  </div>
+                  <div className="glass-neu p-12 flex flex-col justify-between bg-white/60 border-white shadow-3xl">
+                    <div>
+                        <div className="w-16 h-16 glass-neu !bg-rose-500 rounded-[28px] flex items-center justify-center text-white mb-12 shadow-xl shadow-rose-500/30 !border-none">
+                          <MapPin size={32} />
+                        </div>
+                        <h3 className="text-5xl font-display font-bold uppercase mb-12 leading-[0.9] tracking-tighter text-slate-900 text-3d px-1">Location <br />Tracking <br /><span className="text-rose-500 text-3d-red">Live</span></h3>
+                        <div className="space-y-8">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
+                            <h5 className="font-bold text-slate-900 text-xl uppercase tracking-tighter">Bikaner Hub</h5>
+                          </div>
+                          <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest opacity-60 leading-relaxed">
+                            10A, Mahabalipuram, Near Sampat Place,<br />
+                            NYA Bus Stand, Nokha Road, Gangashahar,<br />
+                            Bikaner, Rajasthan
+                          </p>
+                          <div className="flex gap-8 mt-10 pt-8 border-t border-slate-100">
+                            <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-rose-600 uppercase hover:text-rose-700 transition-colors">
+                              <Search size={18}/> Navigation
+                            </a>
+                            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase">
+                              <Clock size={18}/> 24/7 ACTIVE
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
             {section.type === 'testimonials' && <TestimonialSection index={i} />}
             {section.type === 'emergency' && <EmergencyControl index={i} />}
           </React.Fragment>
         ))}
 
-        <section className="section-width py-20 lg:py-32 mb-24 lg:mb-0 relative overflow-hidden">
-           <div className="grid lg:grid-cols-3 gap-10 px-4 lg:px-0">
-              <div className="lg:col-span-2 glass-neu bg-rose-50/30 min-h-[500px] relative group overflow-hidden border-none shadow-3xl">
-                 <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-200 p-10 text-center opacity-40">
-                    <MapPin size={100} className="mb-8 animate-bounce" />
-                    <p className="text-lg font-bold uppercase tracking-[0.4em] text-rose-600">Bikaner Location Hub</p>
-                 </div>
-                 
-                 <div className="absolute bottom-10 lg:bottom-12 left-10 lg:left-12 right-10 lg:right-12 flex flex-col lg:flex-row gap-10 items-center justify-between">
-                    <div className="glass-neu bg-white/80 backdrop-blur-3xl px-10 py-8 border-white shadow-2xl w-full lg:w-auto">
-                        <div className="flex items-center gap-4 mb-4">
-                           <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
-                           <h5 className="font-bold text-slate-900 text-2xl uppercase tracking-tighter text-3d px-1">Divyam Node</h5>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest opacity-60">Near Old Post Office, Gangashahar, Bikaner</p>
-                        <div className="flex gap-8 mt-10 pt-8 border-t border-slate-100">
-                           <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-rose-600 uppercase hover:text-rose-700 transition-colors">
-                              <Search size={18}/> Maps
-                           </a>
-                           <a href="https://www.justdial.com/Bikaner/Divyam-Hospital-Near-Old-Post-Office-Gangashahar/9999PX151.X151.180215161042.Z1G3" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-blue-600 uppercase hover:text-blue-700 transition-colors">
-                              <Zap size={18}/> Nexus Page
-                           </a>
-                        </div>
-                    </div>
-                 </div>
-              </div>
-              <div className="glass-neu p-12 flex flex-col justify-between bg-white/60 border-white shadow-3xl">
-                 <div>
-                    <div className="w-16 h-16 glass-neu !bg-rose-500 rounded-[28px] flex items-center justify-center text-white mb-12 shadow-xl shadow-rose-500/30 !border-none">
-                       <Database size={32} />
-                    </div>
-                    <h3 className="text-5xl font-display font-bold uppercase mb-12 leading-[0.9] tracking-tighter text-slate-900 text-3d px-1">Nexus <br />Command <br /><span className="text-rose-500 text-3d-red">Live</span></h3>
-                    <div className="space-y-8">
-                       {[
-                         { l: 'Node Latency', v: '0.02ms', c: 'text-rose-500 text-3d-red' },
-                         { l: 'Capacity', v: '94%', c: 'text-blue-500' },
-                         { l: 'Accuracy', v: '99.9%', c: 'text-rose-500' }
-                       ].map(i => (
-                         <div key={i.l} className="flex justify-between items-center border-b border-slate-100 pb-5">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">{i.l}</span>
-                            <span className={`text-[11px] font-bold uppercase ${i.c}`}>{i.v}</span>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
-                 <button className="glass-neu w-full h-20 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] rounded-full shadow-2xl hover:!bg-rose-500 active:scale-95 transition-all text-xs mt-16 !border-none">
-                    Enter Console Hub
-                 </button>
-              </div>
-           </div>
-        </section>
-
         {/* FAQ Section */}
-        <SectionWrapper id="faq" title="Nexus Inquiries" subtitle="Got questions about our relay systems?" index={sections.length}>
+        <SectionWrapper id="faq" title="Common Inquiries" subtitle="Frequently asked questions about Divyam" index={sections.length}>
            <div className="max-w-4xl mx-auto space-y-6 px-4 lg:px-0">
               {[
-                { q: 'What is Divyam Nexus?', a: 'A multi-specialty clinical workflow designed to organize specialists and diagnostic streams into one autonomous hub.' },
-                { q: 'Is emergency dispatch available 24/7?', a: 'Yes, our Bikaner dispatch unit is always active with an average 5-minute response time.' },
-                { q: 'How can I manage my data?', a: 'Through the Nexus Console, you have full transparency over your medical records and specialist input.' }
+                { q: 'What services does Divyam offer?', a: 'We are a multispeciality hospital offering 24/7 ICU, NICU, Dialysis, Operation Theatre, Pharmacy, and Laboratory services.' },
+                { q: 'Is emergency dispatch available 24/7?', a: 'Yes, our Bikaner unit is always active. Contact us at +91 9413912974 for immediate assistance.' },
+                { q: 'How can I book an appointment?', a: 'You can book through our Patient Hub or call our 24/7 help desk directly.' }
               ].map((faq, i) => (
                 <div key={i} className="glass-neu p-10 bg-white/60 border-white/40 group hover:bg-rose-50/30 transition-colors">
                    <h5 className="font-bold text-slate-800 flex items-center gap-4 text-lg lg:text-xl uppercase tracking-tighter text-3d px-1">
@@ -1306,8 +1393,8 @@ export default function App() {
                 <div className="w-16 h-16 glass-neu-red flex items-center justify-center mb-8 mx-auto shadow-xl">
                   <User size={32} />
                 </div>
-                <h3 className="text-3xl font-display font-bold text-slate-900 text-center mb-2 uppercase tracking-tighter">Nexus Login</h3>
-                <p className="text-slate-500 text-center text-xs mb-10 font-bold uppercase tracking-widest opacity-60">Enter phone for relay access</p>
+                <h3 className="text-3xl font-display font-bold text-slate-900 text-center mb-2 uppercase tracking-tighter">Divyam Login</h3>
+                <p className="text-slate-500 text-center text-xs mb-10 font-bold uppercase tracking-widest opacity-60">Enter phone for patient access</p>
                 
                 <div className="space-y-6">
                    <div className="space-y-2">
@@ -1463,25 +1550,30 @@ export default function App() {
                   <div className="w-14 h-14 glass-neu-red flex items-center justify-center !border-none">
                     <Plus size={32} className="stroke-[4px]" />
                   </div>
-                  <h2 className="text-5xl font-display font-medium tracking-tighter text-3d text-white !shadow-slate-800 uppercase">DIVYAM NEXUS</h2>
+                  <h2 className="text-5xl font-display font-medium tracking-tighter text-3d text-white !shadow-slate-800 uppercase">DIVYAM HOSPITAL</h2>
                </div>
                <p className="text-slate-400 text-lg max-w-sm font-light leading-relaxed mb-12 opacity-80">
-                  Tomorrow's health architecture, serving Bikaner today with 3D precision and human compassion.
+                  Providing accessible, affordable, and high-quality healthcare services with a patient-centric approach in Gangashahar, Bikaner.
                </p>
+               <div className="space-y-2 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                  <p>📍 10A, Mahabalipuram, Nokha Road, Bikaner</p>
+                  <p>📞 +91 9413912974</p>
+                  <p>⏰ Open 24 Hours | 7 Days a Week</p>
+               </div>
             </div>
-            {['Nexus Hub', 'Services', 'Protocols'].map(cat => (
+            {['Services', 'Centers', 'Support'].map(cat => (
                <div key={cat}>
                   <h5 className="text-[11px] font-bold uppercase tracking-[0.4em] text-rose-500 mb-10">{cat}</h5>
                   <ul className="space-y-6 text-slate-400 text-sm font-light uppercase tracking-widest opacity-60">
-                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Digital Console</li>
-                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Expert Nodes</li>
-                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Privacy Chain</li>
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Emergency ER</li>
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">Digital X-Ray</li>
+                     <li className="hover:text-rose-500 cursor-pointer transition-colors">24/7 Pharmacy</li>
                   </ul>
                </div>
             ))}
          </div>
          <div className="section-width border-t border-white/5 mt-24 pt-12 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-slate-600">© 2026 DIVYAM NEXUS HUB • BIKANER NODE 12</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-slate-600">© 2026 DIVYAM HOSPITAL • BIKANER HUB • EST. JULY 2024</p>
          </div>
       </footer>
 
