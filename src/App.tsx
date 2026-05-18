@@ -6,7 +6,7 @@ import {
   MessageSquare, HelpCircle, Star, Settings, Layout,
   Layers, Database, Play, Thermometer, LogOut, ArrowRight,
   History, CreditCard, Wallet, Share2, Pill, Ambulance,
-  UserPlus, CheckCircle2, ChevronLeft, Scissors
+  UserPlus, CheckCircle2, ChevronLeft, Scissors, Home
 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
@@ -14,6 +14,8 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { collection, onSnapshot, query, orderBy, setDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { supabase } from './lib/supabase';
+import NexusSpinner from './components/NexusSpinner';
+import AdminPanel from './admin/AdminPanel';
 
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
@@ -176,11 +178,13 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
           className="w-12 lg:w-20 h-1.5 bg-rose-500 mb-6 lg:mx-auto rounded-full shadow-[0_0_20px_rgba(244,63,94,0.4)]"
         />
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           className="text-4xl lg:text-7xl font-display font-medium text-slate-900 uppercase tracking-tighter leading-none mb-4 text-3d px-1"
         >
           {title.split(' ').map((word, j) => (
@@ -188,9 +192,14 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
           ))}
         </motion.h2>
         {subtitle && (
-          <div className="inline-block px-6 py-2 glass-glossy rounded-full">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-block px-6 py-2 glass-glossy rounded-full"
+          >
             <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[8px] lg:text-[10px]">{subtitle}</p>
-          </div>
+          </motion.div>
         )}
       </div>
       {children}
@@ -201,10 +210,15 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
 const GallerySection = ({ index = 0 }: { index?: number }) => (
   <SectionWrapper id="gallery" title="Facility Gallery" subtitle="Take a look inside our Bikaner unit" index={index}>
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10 px-4 lg:px-0">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
         <motion.div 
           key={i}
-          whileHover={{ y: -8, scale: 1.02 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.1 }}
+          whileHover={{ y: -8, scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           className="glass-neu aspect-square flex items-center justify-center relative group cursor-pointer border-white/40 bg-white/40"
         >
           <div className="absolute inset-4 glass-glossy rounded-[32px] flex items-center justify-center bg-rose-50/20">
@@ -235,7 +249,14 @@ const TestimonialSection = ({ index = 0 }: { index?: number }) => {
             { name: 'Sunil J.', text: 'The staff is very friendly and the node technology is amazing.' },
             { name: 'Mehta Ji', text: 'OPD registration was smooth and the wait times were minimal.' }
           ].map((t, i) => (
-            <div key={i} className="glass-neu p-8 lg:p-10 flex flex-col justify-between border-white/80 bg-white/60 shadow-xl self-stretch">
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              whileHover={{ y: -5 }}
+              transition={{ delay: i * 0.1 }}
+              className="glass-neu p-8 lg:p-10 flex flex-col justify-between border-white/80 bg-white/60 shadow-xl self-stretch cursor-default"
+            >
                <div>
                  <div className="flex gap-1 text-yellow-500 mb-6">
                     {[1,2,3,4,5].map(j => <Star key={j} size={14} fill="currentColor" stroke="none" />)}
@@ -251,7 +272,7 @@ const TestimonialSection = ({ index = 0 }: { index?: number }) => {
                     <span className="text-[8px] uppercase tracking-widest text-rose-600 font-bold opacity-70">Verified</span>
                   </div>
                </div>
-            </div>
+            </motion.div>
           ))}
         </div>
         
@@ -288,9 +309,13 @@ const EmergencyControl = ({ index = 0 }: { index?: number }) => (
              <p className="text-lg lg:text-xl text-red-50 font-light mb-12 leading-relaxed max-w-sm opacity-90">
                 Instant medical relay to our Bikaner command center. Local 3D monitoring active.
              </p>
-             <button className="glass-neu w-full sm:w-auto px-12 py-6 bg-white text-red-600 font-bold text-xs lg:text-sm shadow-2xl active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-4 !rounded-full">
+             <motion.button 
+               whileHover={{ scale: 1.05, backgroundColor: "#ffffff", color: "#dc2626" }}
+               whileTap={{ scale: 0.95 }}
+               className="glass-neu w-full sm:w-auto px-12 py-6 bg-white text-red-600 font-bold text-xs lg:text-sm shadow-2xl transition-all uppercase tracking-widest flex items-center justify-center gap-4 !rounded-full"
+             >
                 Call SOS Node <Phone size={20} />
-             </button>
+             </motion.button>
           </motion.div>
           <div className="hidden lg:flex items-center justify-center relative">
              <div className="absolute w-[400px] h-[400px] border-[20px] border-white/5 rounded-full animate-ping" />
@@ -320,9 +345,13 @@ const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }
             </div>
           ))}
         </div>
-        <button className="glass-neu-red w-full py-6 mt-12 text-white text-[11px] font-bold uppercase tracking-widest shadow-2xl active:scale-95 transition-all !rounded-full">
+        <motion.button 
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          className="glass-neu-red w-full py-6 mt-12 text-white text-[11px] font-bold uppercase tracking-widest shadow-2xl transition-all !rounded-full"
+        >
           Refill Prescription
-        </button>
+        </motion.button>
       </div>
       <div className="grid grid-cols-2 gap-6 lg:gap-8">
         {[
@@ -331,13 +360,18 @@ const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }
           { t: 'Cold Chain', d: 'Managed Hubs', i: Database, c: 'text-slate-900' },
           { i: MessageSquare, t: 'AI Guide', d: 'Dosage Support', c: 'text-indigo-500' }
         ].map((item, i) => (
-          <div key={i} className="glass-neu p-8 bg-white/40 hover:bg-rose-50/50 transition-colors group">
+          <motion.div 
+            key={i} 
+            whileHover={{ y: -5, backgroundColor: "rgba(255, 241, 242, 0.5)" }}
+            whileTap={{ scale: 0.98 }}
+            className="glass-neu p-8 bg-white/40 transition-colors group cursor-pointer"
+          >
             <div className="w-12 h-12 glass-neu-red rounded-2xl flex items-center justify-center mb-6 shadow-sm !rounded-xl">
                <item.i size={24} className="text-white group-hover:scale-110 transition-transform" />
             </div>
             <h4 className="font-bold text-sm lg:text-base mb-2 text-slate-900 uppercase tracking-tight">{item.t}</h4>
             <p className="text-[10px] text-slate-400 leading-tight uppercase font-bold tracking-widest opacity-60">{item.d}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -357,8 +391,20 @@ const LaboratorySection = ({ index = 0 }: { index?: number }) => (
             Real-time biometric analysis synced to your Nexus profile. Automated collection active.
           </p>
           <div className="flex flex-col sm:flex-row gap-6">
-            <button className="glass-neu-red px-12 py-5 font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all !rounded-full">Book Analysis</button>
-            <button className="glass-neu !bg-white/10 !text-white px-12 py-5 border border-white/20 font-bold uppercase tracking-widest text-[10px] !rounded-full">Results Hub</button>
+            <motion.button 
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="glass-neu-red px-12 py-5 font-bold uppercase tracking-widest text-[10px] transition-all !rounded-full"
+            >
+              Book Analysis
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+              whileTap={{ scale: 0.95 }}
+              className="glass-neu !bg-white/10 !text-white px-12 py-5 border border-white/20 font-bold uppercase tracking-widest text-[10px] !rounded-full"
+            >
+              Results Hub
+            </motion.button>
           </div>
         </div>
         <div className="aspect-square glass-glossy rounded-[60px] flex items-center justify-center border border-white/10 relative group bg-white/5">
@@ -385,7 +431,11 @@ const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) =
       ]).map((staff, i) => (
         <motion.div 
           key={i} 
-          whileHover={{ y: -10 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.1, duration: 0.5 }}
+          whileHover={{ y: -12, scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="glass-neu p-8 lg:p-12 text-center flex flex-col items-center group cursor-pointer"
         >
@@ -415,9 +465,12 @@ const CategoryScroll = () => {
   return (
     <div className="lg:hidden px-6 mb-6 mt-4 overflow-hidden">
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2 scroll-smooth">
-        {cats.map(c => (
+        {cats.map((c, i) => (
           <motion.div 
             key={c.n} 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.1 }}
             whileTap={{ scale: 0.9 }}
             className="flex flex-col items-center gap-3 min-w-[80px]"
           >
@@ -521,18 +574,22 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
 
             {/* Horizontal Layout for Mobile Buttons */}
             <div className="flex flex-row lg:flex-wrap gap-4 lg:gap-8 mb-16 lg:mb-32 overflow-x-auto no-scrollbar py-4 px-1">
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 25px 60px rgba(239, 68, 68, 0.4)" }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => document.getElementById('doctors')?.scrollIntoView({ behavior: 'smooth' })}
-                className="glass-neu-red flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full shadow-lg lg:shadow-[0_20px_50px_rgba(239,68,68,0.3)] hover:scale-105 active:scale-95 transition-all"
+                className="glass-neu-red flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full shadow-lg lg:shadow-[0_20px_50px_rgba(239,68,68,0.3)] transition-all"
               >
                 {currentBanner.button1 || "Access Care"}
-              </button>
-              <button 
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, backgroundColor: "rgba(255, 255, 255, 1)" }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => document.getElementById('emergency')?.scrollIntoView({ behavior: 'smooth' })}
-                className="glass-neu flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full flex items-center gap-3 lg:gap-4 text-slate-900 border border-slate-100 hover:bg-slate-50 transition-all shadow-md lg:shadow-xl"
+                className="glass-neu flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full flex items-center gap-3 lg:gap-4 text-slate-900 border border-slate-100 transition-all shadow-md lg:shadow-xl"
               >
                 {currentBanner.button2 || "緊急 SOS"} <Phone className="w-3.5 h-3.5 lg:w-4.5 lg:h-4.5 text-rose-500" />
-              </button>
+              </motion.button>
             </div>
 
             {/* Banner Indicators */}
@@ -642,7 +699,11 @@ const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: nu
         {config.items?.map((item, i) => (
           <motion.div
              key={i}
-             whileHover={{ y: -10, scale: 1.02 }}
+             initial={{ opacity: 0, y: 30 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             transition={{ delay: i * 0.1, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+             whileHover={{ y: -12, scale: 1.02, transition: { duration: 0.4 } }}
              className="glass-neu p-4 lg:p-12 aspect-square lg:aspect-auto group border-white/80 bg-white/40 overflow-hidden relative shadow-all flex flex-col justify-between"
           >
             {/* Native app hint label */}
@@ -711,12 +772,20 @@ const Navbar = () => (
         </nav>
 
         <div className="flex items-center gap-4">
-          <button className="w-14 h-14 glass-neu flex items-center justify-center text-slate-500 active:scale-95 transition-all !rounded-2xl">
+          <motion.button 
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.9 }}
+            className="w-14 h-14 glass-neu flex items-center justify-center text-slate-500 transition-all !rounded-2xl"
+          >
             <Bell size={22} />
-          </button>
-          <button className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:!bg-rose-500 transition-colors !rounded-2xl shadow-3xl">
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.05, backgroundColor: "#e11d48" }}
+            whileTap={{ scale: 0.95 }}
+            className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors !rounded-2xl shadow-3xl"
+          >
             Nexus Console
-          </button>
+          </motion.button>
         </div>
       </div>
     </header>
@@ -743,13 +812,11 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
                fac: 'facilities',
                pharm: 'pharmacy',
                sos: 'emergency',
-               profile: 'hero' // Handled by auth modal if not logged in
+               profile: 'hero' 
              };
              if (item.id !== 'profile') {
                const el = document.getElementById(targets[item.id]);
                el?.scrollIntoView({ behavior: 'smooth' });
-             } else {
-               // Profile handling
              }
            }}
            className="relative flex flex-col items-center justify-center w-full h-full transition-all duration-300"
@@ -775,142 +842,6 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
      })}
   </nav>
 );
-
-const AdminPanel = ({ onClose }: { onClose: () => void }) => {
-  const [logged, setLogged] = useState(false);
-  const [pass, setPass] = useState('');
-  const [userVal, setUserVal] = useState('');
-  const [banners, setBanners] = useState<any[]>([]);
-  const [newBanner, setNewBanner] = useState({ title: '', subtitle: '', description: '', button1: '', button2: '' });
-
-  useEffect(() => {
-    if (logged) {
-      const q = query(collection(db, "banners"), orderBy("order", "asc"));
-      const unsub = onSnapshot(q, (snap) => {
-        setBanners(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
-      return () => unsub();
-    }
-  }, [logged]);
-
-  const handleLogin = () => {
-    if (userVal === '9928448633' && pass === '511083') {
-      setLogged(true);
-    } else {
-      alert('Unauthorized Console Access');
-    }
-  };
-
-  const addBanner = async () => {
-    await setDoc(doc(collection(db, "banners")), {
-      ...newBanner,
-      order: banners.length,
-      createdAt: new Date().toISOString()
-    });
-    setNewBanner({ title: '', subtitle: '', description: '', button1: '', button2: '' });
-  };
-
-  const deleteBanner = async (id: string) => {
-    if (window.confirm('Confirm Banner Decommission?')) {
-      await deleteDoc(doc(db, "banners", id));
-    }
-  };
-
-  if (!logged) {
-    return (
-      <div className="h-screen flex items-center justify-center p-6 bg-slate-900">
-         <div className="glass-neu !bg-slate-800 p-10 w-full max-w-sm border-white/5">
-            <h2 className="text-3xl font-display font-bold text-white mb-8 uppercase text-center">Nexus Console</h2>
-            <div className="space-y-6">
-               <input type="text" placeholder="ADMIN NODE ID" onChange={e => setUserVal(e.target.value)} className="w-full bg-white/5 p-4 rounded-2xl border border-white/5 text-white" />
-               <input type="password" placeholder="NEXUS ACCESS KEY" onChange={e => setPass(e.target.value)} className="w-full bg-white/5 p-4 rounded-2xl border border-white/5 text-white" />
-               <button onClick={handleLogin} className="glass-neu-red w-full !py-4">Authorize</button>
-               <button onClick={onClose} className="w-full text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">Abort Mission</button>
-            </div>
-         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen bg-slate-50 p-6 flex flex-col">
-       <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-display font-bold uppercase tracking-tighter">Nexus Control Hub</h2>
-          <button onClick={onClose} className="w-12 h-12 glass-neu flex items-center justify-center"><X /></button>
-       </div>
-       
-       <div className="flex-1 overflow-y-auto space-y-10 pb-20">
-          <div className="glass-neu p-8 bg-slate-900 text-white">
-             <div className="flex justify-between items-center mb-8">
-                <div>
-                   <div className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.5em] mb-2">Global Override</div>
-                   <div className="text-3xl font-display">System Level 4</div>
-                </div>
-                <div className="w-14 h-14 glass-neu !bg-rose-500 rounded-2xl flex items-center justify-center">
-                   <Settings size={28} />
-                </div>
-             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div className="p-6 glass-neu bg-white/5 border-none">
-                   <div className="text-4xl font-display mb-2">99%</div>
-                   <div className="text-[8px] font-bold uppercase">CPU Load</div>
-                </div>
-                <div className="p-6 glass-neu bg-white/5 border-none">
-                   <div className="text-4xl font-display mb-2">12ms</div>
-                   <div className="text-[8px] font-bold uppercase">Latent Delay</div>
-                </div>
-             </div>
-          </div>
-
-          <div className="space-y-6">
-             <h5 className="text-[10px] font-bold text-slate-400 uppercase ml-1 tracking-widest">Banner Management</h5>
-             <div className="glass-neu p-8 bg-white space-y-4">
-                <input type="text" placeholder="TITLE" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
-                <input type="text" placeholder="SUBTITLE" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
-                <textarea placeholder="DESCRIPTION" value={newBanner.description} onChange={e => setNewBanner({...newBanner, description: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
-                <div className="grid grid-cols-2 gap-4">
-                  <input type="text" placeholder="BTN 1" value={newBanner.button1} onChange={e => setNewBanner({...newBanner, button1: e.target.value})} className="bg-slate-50 p-4 rounded-xl border border-slate-100" />
-                  <input type="text" placeholder="BTN 2" value={newBanner.button2} onChange={e => setNewBanner({...newBanner, button2: e.target.value})} className="bg-slate-50 p-4 rounded-xl border border-slate-100" />
-                </div>
-                <button onClick={addBanner} className="glass-neu-red w-full !py-4 uppercase font-bold text-[10px] tracking-widest">Deploy New Banner</button>
-             </div>
-
-             <div className="space-y-4">
-                {banners.map(b => (
-                  <div key={b.id} className="glass-neu p-6 bg-white flex justify-between items-start">
-                     <div>
-                        <div className="font-bold text-sm uppercase">{b.title}</div>
-                        <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{b.subtitle}</div>
-                     </div>
-                     <button onClick={() => deleteBanner(b.id)} className="text-rose-500 font-bold text-[8px] uppercase tracking-widest">Shutdown</button>
-                  </div>
-                ))}
-             </div>
-          </div>
-
-          <div className="space-y-6">
-             <h5 className="text-[10px] font-bold text-slate-400 uppercase ml-1 tracking-widest">Live Hub Management</h5>
-             {[
-               { n: 'Hero Animation', v: '0.8.4', s: true },
-               { n: 'Supabase Relay', v: 'Active', s: true },
-               { n: 'SOS Protocols', v: 'Hardened', s: false },
-               { n: 'Diagnostic AI', v: 'Node 12', s: true }
-             ].map(c => (
-               <div key={c.n} className="glass-neu p-6 bg-white flex justify-between items-center">
-                  <div>
-                    <div className="font-bold text-sm uppercase">{c.n}</div>
-                    <div className="text-[8px] font-bold text-slate-400">{c.v}</div>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full p-1 transition-colors ${c.s ? 'bg-rose-500' : 'bg-slate-200'}`}>
-                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${c.s ? 'translate-x-6' : ''}`} />
-                  </div>
-               </div>
-             ))}
-          </div>
-       </div>
-    </div>
-  );
-};
 
 export default function App() {
   const [sections, setSections] = useState<AppSection[]>([]);
@@ -1053,14 +984,7 @@ export default function App() {
   }, []);
 
   if (loading) {
-     return (
-       <div className="h-screen flex flex-col items-center justify-center bg-health-bg">
-          <div className="w-16 h-16 bg-white rounded-3xl shadow-2xl flex items-center justify-center animate-bounce border border-rose-100">
-             <Plus className="text-rose-500 w-8 h-8 stroke-[3px]" />
-          </div>
-          <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.4em] text-rose-600 animate-pulse">Initializing Nexus Core</p>
-       </div>
-     );
+     return <NexusSpinner />;
   }
 
   return (
@@ -1395,9 +1319,7 @@ export default function App() {
           )}
 
           {isAdminMode && (
-             <div className="fixed inset-0 z-[200] bg-white overflow-y-auto">
-                <AdminPanel onClose={() => setIsAdminMode(false)} />
-             </div>
+             <AdminPanel onClose={() => setIsAdminMode(false)} />
           )}
         </AnimatePresence>
       </main>
