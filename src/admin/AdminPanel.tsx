@@ -4,7 +4,7 @@ import Sidebar from './Sidebar';
 import Dashboard from './Dashboard';
 import ContentManager from './ContentManager';
 import GalleryManager from './GalleryManager';
-import { X, Lock, ShieldCheck, Activity } from 'lucide-react';
+import { X, Lock, ShieldCheck, Activity, Settings } from 'lucide-react';
 
 interface AdminPanelProps {
   onClose: () => void;
@@ -151,6 +151,80 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         );
       case 'gallery':
         return <GalleryManager />;
+      case 'offers':
+        return (
+          <ContentManager 
+            collectionName="offers" 
+            title="Special Offers" 
+            schema={{
+              title: { type: 'text' },
+              description: { type: 'textarea' },
+              discount: { type: 'text' },
+              code: { type: 'text' },
+              order: { type: 'number' }
+            }} 
+          />
+        );
+      case 'settings':
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="glass-neu p-10 bg-white/40 border-slate-200">
+                <div className="flex items-center gap-6 mb-12">
+                   <div className="w-16 h-16 glass-neu !bg-slate-900 rounded-3xl flex items-center justify-center text-white">
+                      <Settings size={32} />
+                   </div>
+                   <div>
+                      <h2 className="text-3xl font-display font-medium text-slate-900 uppercase">System Intelligence Config</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Configure global node parameters</p>
+                   </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-10">
+                   <div className="space-y-8">
+                      <h4 className="text-[11px] font-bold uppercase tracking-widest text-rose-500 mb-6">Messaging Relay</h4>
+                      <div className="space-y-4">
+                         <div className="flex items-center justify-between p-6 glass-neu bg-white">
+                            <span className="text-[10px] font-bold uppercase text-slate-900">Push Notifications</span>
+                            <div className="w-10 h-5 bg-emerald-500 rounded-full relative">
+                               <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+                            </div>
+                         </div>
+                         <div className="flex items-center justify-between p-6 glass-neu bg-white opacity-50 cursor-not-allowed">
+                            <span className="text-[10px] font-bold uppercase text-slate-900">SMS Fallback</span>
+                            <div className="w-10 h-5 bg-slate-200 rounded-full relative">
+                               <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="space-y-8">
+                      <h4 className="text-[11px] font-bold uppercase tracking-widest text-rose-500 mb-6">Security Protocols</h4>
+                      <div className="space-y-4">
+                         <div className="flex items-center justify-between p-6 glass-neu bg-white">
+                            <span className="text-[10px] font-bold uppercase text-slate-900">Biometric Verification</span>
+                            <div className="w-10 h-5 bg-slate-200 rounded-full relative">
+                               <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full" />
+                            </div>
+                         </div>
+                         <div className="flex items-center justify-between p-6 glass-neu bg-white">
+                            <span className="text-[10px] font-bold uppercase text-slate-900">Admin Two-Factor</span>
+                            <div className="w-10 h-5 bg-emerald-500 rounded-full relative">
+                               <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                
+                <div className="mt-16 pt-12 border-t border-slate-100 flex justify-end">
+                   <button className="glass-neu px-12 py-5 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest shadow-2xl active:scale-95 transition-all !rounded-2xl">
+                      Save Global State
+                   </button>
+                </div>
+             </div>
+          </div>
+        );
       case 'preview':
         return (
           <div className="h-full flex flex-col gap-8">

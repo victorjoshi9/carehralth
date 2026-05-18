@@ -6,26 +6,12 @@ import {
   Edit3, 
   Save, 
   X, 
-  ChevronRight, 
   Database,
   Search,
   Layout,
-  Layers,
-  Users,
-  MessageSquare,
   Activity
 } from 'lucide-react';
-import { db } from '../lib/firebase';
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  setDoc, 
-  doc, 
-  deleteDoc, 
-  updateDoc 
-} from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 
 interface ContentManagerProps {
   collectionName: string;
@@ -35,43 +21,65 @@ interface ContentManagerProps {
 
 const ContentManager = ({ collectionName, title, schema }: ContentManagerProps) => {
   const [items, setItems] = useState<any[]>([]);
-  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<string | number | null>(null);
   const [formData, setFormData] = useState<any>({});
   const [isAdding, setIsAdding] = useState(false);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const fetchItems = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from(collectionName)
+      .select('*')
+      .order('order', { ascending: true });
+    
+    if (data) setItems(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const q = query(collection(db, collectionName));
-    const unsub = onSnapshot(q, (snap) => {
-      setItems(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsub();
+    fetchItems();
   }, [collectionName]);
 
-  const handleSave = async (id?: string) => {
+  const handleSave = async (id?: string | number) => {
     try {
       if (id) {
-        await updateDoc(doc(db, collectionName, id), formData);
+        const { error } = await supabase
+          .from(collectionName)
+          .update(formData)
+          .eq('id', id);
+        if (error) throw error;
         setIsEditing(null);
       } else {
-        const newDocRef = doc(collection(db, collectionName));
-        await setDoc(newDocRef, {
-          ...formData,
-          createdAt: new Date().toISOString(),
-          order: items.length
-        });
+        const { error } = await supabase
+          .from(collectionName)
+          .insert([{
+            ...formData,
+            order: items.length
+          }]);
+        if (error) throw error;
         setIsAdding(false);
       }
       setFormData({});
+      fetchItems();
     } catch (err) {
       console.error("Error saving doc:", err);
-      alert("Permission denied or validation failed.");
+      alert("Supabase Operation Failed. Check table schema.");
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | number) => {
     if (window.confirm(`Confirm decommissioning of this ${collectionName} unit?`)) {
-      await deleteDoc(doc(db, collectionName, id));
+      const { error } = await supabase
+        .from(collectionName)
+        .delete()
+        .eq('id', id);
+      if (error) {
+        alert("Delete failed");
+      } else {
+        fetchItems();
+      }
     }
   };
 

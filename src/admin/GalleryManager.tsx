@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Plus, 
   Trash2, 
   Camera, 
   X, 
-  Upload, 
   ImageIcon, 
   Link as LinkIcon,
   Search,
   Zap
 } from 'lucide-react';
-import { db } from '../lib/firebase';
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  setDoc, 
-  doc, 
-  deleteDoc 
-} from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 
 const GalleryManager = () => {
   const [images, setImages] = useState<any[]>([]);
@@ -28,29 +17,49 @@ const GalleryManager = () => {
   const [newImage, setNewImage] = useState({ url: '', caption: '' });
   const [search, setSearch] = useState('');
 
+  const fetchGallery = async () => {
+    const { data, error } = await supabase
+      .from('gallery')
+      .select('*')
+      .order('order', { ascending: true });
+    
+    if (data) {
+      setImages(data);
+    }
+  };
+
   useEffect(() => {
-    const q = query(collection(db, "gallery"));
-    const unsub = onSnapshot(q, (snap) => {
-      setImages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsub();
+    fetchGallery();
   }, []);
 
   const handleAdd = async () => {
     if (!newImage.url) return;
-    const newDocRef = doc(collection(db, "gallery"));
-    await setDoc(newDocRef, {
-      ...newImage,
-      createdAt: new Date().toISOString(),
-      order: images.length
-    });
-    setNewImage({ url: '', caption: '' });
-    setIsAdding(false);
+    const { error } = await supabase
+      .from('gallery')
+      .insert([{
+        ...newImage,
+        order: images.length
+      }]);
+    
+    if (error) {
+      alert("Asset deployment failed");
+    } else {
+      setNewImage({ url: '', caption: '' });
+      setIsAdding(false);
+      fetchGallery();
+    }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | number) => {
     if (window.confirm('Eject this visual asset?')) {
-      await deleteDoc(doc(db, "gallery", id));
+      const { error } = await supabase
+        .from('gallery')
+        .delete()
+        .eq('id', id);
+      
+      if (!error) {
+        fetchGallery();
+      }
     }
   };
 

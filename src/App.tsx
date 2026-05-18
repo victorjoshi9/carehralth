@@ -6,7 +6,8 @@ import {
   MessageSquare, HelpCircle, Star, Settings, Layout,
   Layers, Database, Play, Thermometer, LogOut, ArrowRight,
   History, CreditCard, Wallet, Share2, Pill, Ambulance,
-  UserPlus, CheckCircle2, ChevronLeft, Scissors, Home as HomeIcon
+  UserPlus, CheckCircle2, ChevronLeft, Scissors, Home as HomeIcon,
+  GraduationCap, Briefcase
 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
@@ -328,6 +329,133 @@ const EmergencyControl = ({ index = 0 }: { index?: number }) => (
   </section>
 );
 
+const DoctorCard = ({ doc, index }: { doc: any, index: number }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <motion.div 
+      whileHover={{ y: isExpanded ? 0 : -10 }}
+      layout
+      className={`glass-neu p-8 lg:p-12 text-center group flex flex-col items-center transition-all duration-500 mb-4 ${isExpanded ? 'col-span-2 lg:col-span-2 row-span-2 overflow-visible border-rose-200 ring-2 ring-rose-500/20' : 'cursor-pointer hover:border-rose-100'}`}
+      onClick={() => !isExpanded && setIsExpanded(true)}
+    >
+      <motion.div layout className="relative w-28 lg:w-40 h-28 lg:h-40 mb-8 lg:mb-10">
+         <div className="absolute inset-[-10px] glass-neu !rounded-full !bg-rose-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+         <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white glass-glossy !p-1 shadow-2xl">
+            <div className="w-full h-full rounded-full overflow-hidden">
+              {doc.image ? (
+                <img 
+                  src={doc.image} 
+                  alt={doc.name} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-500">
+                   <User size={48} />
+                </div>
+              )}
+            </div>
+         </div>
+         {isExpanded && (
+           <motion.div 
+             initial={{ scale: 0 }}
+             animate={{ scale: 1 }}
+             className="absolute -top-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white shadow-lg"
+           >
+             <CheckCircle2 size={14} />
+           </motion.div>
+         )}
+      </motion.div>
+      
+      <motion.h4 layout className="font-display text-lg lg:text-3xl font-bold text-slate-900 leading-tight mb-2 uppercase tracking-tighter text-3d px-1">{doc.name}</motion.h4>
+      <motion.p layout className="text-[10px] lg:text-[12px] font-bold uppercase text-rose-600/60 tracking-widest mb-6 opacity-80">{doc.role}</motion.p>
+      
+      <AnimatePresence mode="wait">
+        {isExpanded ? (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="w-full text-left space-y-8 mt-4 border-t border-rose-100 pt-8"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 glass-neu flex items-center justify-center text-rose-500">
+                    <GraduationCap size={18} />
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Specialization</div>
+                    <div className="text-[11px] font-bold text-slate-900 uppercase tracking-tight">{doc.specialization || doc.role}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 glass-neu flex items-center justify-center text-rose-500">
+                    <Briefcase size={18} />
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Experience</div>
+                    <div className="text-[11px] font-bold text-slate-900 uppercase tracking-tight">{doc.experience || '10+ Years'}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                   <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Expert Protocol</div>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-600 font-medium italic bg-rose-50/30 p-4 rounded-2xl border border-rose-100/50">
+                  "{doc.bio || `Dr. ${doc.name.split(' ').pop()} is a leading expert in ${doc.role}, bringing advanced clinical precision and compassionate care to Divyam Hospital.`}"
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-4 pt-4">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(false);
+                }}
+                className="flex-1 glass-neu py-4 bg-white text-slate-900 rounded-full text-[10px] font-bold uppercase tracking-widest border border-rose-100 hover:bg-rose-50 transition-colors"
+              >
+                Retract Intel
+              </button>
+              <button className="flex-1 glass-neu py-4 bg-slate-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                Connect Node
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div layout className="w-full mt-auto">
+             <button 
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setIsExpanded(true);
+               }}
+               className="glass-neu w-full py-4 bg-slate-900/5 text-slate-900 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-500 group"
+             >
+               <span className="flex items-center justify-center gap-2">
+                 View Node Intel <Plus size={12} className="group-hover:rotate-90 transition-transform" />
+               </span>
+             </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+const Doctors = ({ items }: { items?: any[] }) => {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10 px-6 lg:px-0 auto-rows-min">
+      {items?.map((doc, i) => (
+        <DoctorCard key={i} doc={doc} index={i} />
+      ))}
+    </div>
+  );
+};
+
 const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }) => (
   <SectionWrapper id="pharmacy" title="Nexus Pharmacy" subtitle="24/7 Medicine Relay" index={index}>
     <div className="grid lg:grid-cols-2 gap-10 px-4 lg:px-0">
@@ -487,6 +615,10 @@ const CategoryScroll = () => {
 
 const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] }) => {
   const [activeBanner, setActiveBanner] = useState(0);
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 1000], [0, 300]); // Moves slower than scroll for depth
+  const textY = useTransform(scrollY, [0, 1000], [0, -150]); // Moves up faster for counter-parallax
+  const opacity = useTransform(scrollY, [0, 500], [0.05, 0]); // Fade out as it leaves view
 
   useEffect(() => {
     if (banners.length > 1) {
@@ -506,11 +638,14 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
   return (
     <section id="hero" className="relative min-h-screen bg-[#FDFDFD] overflow-hidden flex flex-col lg:flex-row">
       {/* Animated Background Stroke */}
-      <div className="absolute inset-x-0 top-0 h-screen pointer-events-none opacity-5">
+      <motion.div 
+        style={{ y, opacity }}
+        className="absolute inset-x-0 top-0 h-screen pointer-events-none"
+      >
         <svg className="w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
           <path d="M0,500 Q250,200 500,500 T1000,500" fill="none" stroke="#ef4444" strokeWidth="20" className="animated-stroke" />
         </svg>
-      </div>
+      </motion.div>
 
       {/* Left Content Side */}
       <div className="flex-1 flex flex-col justify-center px-6 lg:px-24 py-24 lg:py-0 relative z-20">
@@ -531,7 +666,10 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
               </div>
             </div>
 
-            <div className="relative mb-6 lg:mb-8 h-[80px] lg:h-[180px] w-full">
+            <motion.div 
+              style={{ y: textY }}
+              className="relative mb-6 lg:mb-8 h-[80px] lg:h-[180px] w-full"
+            >
                <svg className="w-full h-full overflow-visible" viewBox="0 0 800 200">
                  <text 
                    x="0" 
@@ -549,7 +687,7 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
                    DIVYAM
                  </text>
                </svg>
-            </div>
+            </motion.div>
 
             <h1 className="text-5xl lg:text-[100px] font-display font-medium leading-[0.85] text-[#1D1D1F] mb-10 lg:mb-12 tracking-tighter text-3d px-1 relative">
                <motion.span 
@@ -960,10 +1098,38 @@ export default function App() {
       { id: 'pharmacy', type: 'pharmacy', enabled: true, order: 1.5, title: 'Nexus Pharmacy' },
       { id: 'labs', type: 'labs', enabled: true, order: 1.6, title: 'Laboratory Hub' },
       { id: 'doctors', type: 'doctors', enabled: true, order: 2, title: 'Expert Doctors', items: [
-        { name: 'Dr. Sameer Khan', role: 'Pediatrics', image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400' },
-        { name: 'Dr. Anjali Verma', role: 'Gynecology', image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400' },
-        { name: 'Dr. Vivek Sharma', role: 'Cardiology', image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400' },
-        { name: 'Dr. Pooja Devi', role: 'Dentistry', image: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=400' }
+        { 
+          name: 'Dr. Sameer Khan', 
+          role: 'Pediatrics', 
+          specialization: 'Child Healthcare & Neonatology',
+          experience: '12+ Years',
+          bio: 'Dr. Sameer specializes in pediatric intensive care and advanced neonatology, ensuring the smallest patients receive the highest level of diagnostic precision.',
+          image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=400' 
+        },
+        { 
+          name: 'Dr. Anjali Verma', 
+          role: 'Gynecology', 
+          specialization: 'Obstetrics & High-Risk Pregnancy',
+          experience: '15+ Years',
+          bio: 'With over 15 years of surgical experience, Dr. Anjali leads our maternity wing with a focus on minimally invasive gynecological procedures.',
+          image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=400' 
+        },
+        { 
+          name: 'Dr. Vivek Sharma', 
+          role: 'Cardiology', 
+          specialization: 'Interventional Cardiology',
+          experience: '18+ Years',
+          bio: 'Dr. Vivek is a pioneer in complex cardiac interventions, bringing robotic-assisted surgical techniques to the heart of Bikaner.',
+          image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400' 
+        },
+        { 
+          name: 'Dr. Pooja Devi', 
+          role: 'Dentistry', 
+          specialization: 'Cosmetic Dentistry & Implantology',
+          experience: '9+ Years',
+          bio: 'Dr. Pooja combines artistic precision with medical advanced implants, specializing in complete smile reconstruction and digital dentistry.',
+          image: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=400' 
+        }
       ]},
       { id: 'staff', type: 'staff', enabled: true, order: 3, title: 'Friendly Staff' },
       { id: 'gallery', type: 'gallery', enabled: true, order: 4, title: 'Facility Gallery' },
@@ -1040,48 +1206,8 @@ export default function App() {
             {section.type === 'facilities' && <FacilitySection config={section} index={i} />}
             {section.type === 'doctors' && (
                <SectionWrapper id="doctors" title="Expert Doctors" subtitle="Bikaner's leading medical input" index={i}>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-10 px-6 lg:px-0">
-                    {section.items?.map((doc, i) => (
-                      <motion.div 
-                        key={i} 
-                        whileHover={{ y: -10 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="glass-neu p-8 lg:p-12 text-center group cursor-pointer flex flex-col items-center"
-                      >
-                        <div className="relative w-28 lg:w-40 h-28 lg:h-40 mb-8 lg:mb-10">
-                           <div className="absolute inset-[-10px] glass-neu !rounded-full !bg-rose-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                           <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white glass-glossy !p-1 shadow-2xl">
-                              <div className="w-full h-full rounded-full overflow-hidden">
-                                {doc.image ? (
-                                  <img 
-                                    src={doc.image} 
-                                    alt={doc.name} 
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                    referrerPolicy="no-referrer"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-500">
-                                     <User size={48} />
-                                  </div>
-                                )}
-                              </div>
-                           </div>
-                           <div className="absolute bottom-2 right-2 w-10 h-10 glass-neu !bg-rose-500 rounded-full border-4 border-white flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform shadow-xl">
-                              <Plus size={16} strokeWidth={4} />
-                           </div>
-                        </div>
-                        
-                        <h4 className="font-display text-lg lg:text-2xl font-bold text-slate-900 leading-tight mb-2 uppercase tracking-tighter text-3d px-1">{doc.name}</h4>
-                        <p className="text-[10px] lg:text-[12px] font-bold uppercase text-rose-600/60 tracking-widest mb-6 opacity-80">{doc.role}</p>
-                        
-                        <div className="w-full mt-auto">
-                           <button className="glass-neu w-full py-4 bg-slate-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all !rounded-full">
-                             Consult Node
-                           </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+                  <Doctors items={section.items} />
+
                </SectionWrapper>
             )}
             {section.type === 'staff' && <StaffSection items={section.items} index={i} />}
