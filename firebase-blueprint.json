@@ -1,43 +1,42 @@
 {
   "entities": {
-    "SectionConfig": {
-      "title": "Section Configuration",
-      "description": "Configuration for a specific page section",
+    "Section": {
+      "title": "Section",
+      "description": "App section configuration",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "order": { "type": "number" },
+        "type": { "type": "string" },
         "enabled": { "type": "boolean" },
+        "order": { "type": "number" },
         "title": { "type": "string" },
-        "subtitle": { "type": "string" },
-        "content": { "type": "string" },
-        "image": { "type": "string" },
         "items": { "type": "array" }
       },
-      "required": ["id", "enabled", "order"]
+      "required": ["id", "type", "enabled", "order", "title"]
     },
-    "Doctor": {
-      "title": "Doctor",
-      "description": "Medical specialist details",
+    "Banner": {
+      "title": "Banner",
+      "description": "Hero section banner",
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "specialty": { "type": "string" },
-        "department": { "type": "string" },
-        "image": { "type": "string" },
-        "rating": { "type": "number" },
-        "status": { "type": "string", "enum": ["online", "offline", "busy"] }
-      }
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "number" },
+        "button1": { "type": "string" },
+        "button2": { "type": "string" }
+      },
+      "required": ["title", "subtitle", "description", "order"]
     }
   },
   "firestore": {
-    "sections": {
-      "schema": "SectionConfig",
-      "description": "Dynamic page sections"
+    "/sections/{sectionId}": {
+      "schema": "Section",
+      "description": "Global app sections"
     },
-    "doctors": {
-      "schema": "Doctor",
-      "description": "Doctor directory"
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "Hero section banners"
     }
   }
 }

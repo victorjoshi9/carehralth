@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0103097903",
-  "appId": "1:44304768518:web:8a9c8d3965e2565dab6d87",
-  "apiKey": "AIzaSyChYW7iU2JYufzQKK5rCG58wXjsrySzvew",
-  "authDomain": "gen-lang-client-0103097903.firebaseapp.com",
+  "projectId": "divyamhospital-e6511",
+  "appId": "1:611257127952:web:1f9e9fa4902c65841a6695",
+  "apiKey": "AIzaSyC3hwKOXK9oNU_7VjNg951Tr_Ry5vA4SfA",
+  "authDomain": "divyamhospital-e6511.firebaseapp.com",
   "firestoreDatabaseId": "ai-studio-facc72cb-b6e8-4994-80ec-af84c1667848",
-  "storageBucket": "gen-lang-client-0103097903.firebasestorage.app",
-  "messagingSenderId": "44304768518",
+  "storageBucket": "divyamhospital-e6511.firebasestorage.app",
+  "messagingSenderId": "611257127952",
   "measurementId": ""
 }

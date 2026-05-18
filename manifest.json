@@ -1,0 +1,17 @@
+{
+  "name": "Divyam Nexus Hub",
+  "short_name": "Divyam",
+  "description": "Advanced medical clinical autonomous node in Bikaner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdfdfd",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2864/2864440.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

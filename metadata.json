@@ -1,6 +1,6 @@
 {
   "name": "Divyam Nexus",
-  "description": "A high-tech, AI-powered health command center serving the Bikaner community. Multi-specialty care with a futuristic interface.",
+  "description": "A futuristic healthcare command center with mobile-native PWA design, Supabase-powered IPD relay, and AI-driven diagnostics for the Bikaner hub.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
+    // Default deny catch-all
     match /{document=**} {
       allow read, write: if false;
     }
@@ -10,21 +10,56 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Publicly readable sections and data, but only admin can write
-    // For this prototype, we'll allow public read.
-    match /sections/{sectionId} {
-      allow read: if true;
-      allow write: if isSignedIn(); 
+    // Validation helper for Sections
+    function isValidSection(data) {
+      return data.keys().hasAll(['id', 'type', 'enabled', 'order', 'title']) &&
+             data.id is string &&
+             data.type is string &&
+             data.enabled is bool &&
+             data.order is number &&
+             data.title is string;
     }
 
+    // Validation helper for Banners  
+    function isValidBanner(data) {
+      return data.keys().hasAll(['title', 'subtitle', 'description', 'order']) &&
+             data.title is string &&
+             data.subtitle is string &&
+             data.description is string &&
+             data.order is number;
+    }
+
+    // Rules for Sections
+    match /sections/{sectionId} {
+      allow get, list: if true;
+      allow create, update: if isSignedIn() && isValidSection(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+
+    // Rules for Banners
+    match /banners/{bannerId} {
+      allow get, list: if true;
+      allow create, update: if isSignedIn() && isValidBanner(request.resource.data);
+      allow delete: if isSignedIn();
+    }
+
+    // Other collections needed by the app
     match /doctors/{doctorId} {
       allow read: if true;
       allow write: if isSignedIn();
     }
-    
+
     match /testimonials/{id} {
       allow read: if true;
-      allow write: if isSignedIn() || request.resource.data.isPending == true;
+      allow write: if isSignedIn() || (request.resource.data.isPending == true);
+    }
+    
+    match /emergency/{id} {
+      allow read, write: if true;
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
   }
 }

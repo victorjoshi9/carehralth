@@ -4,11 +4,16 @@ import {
   ChevronRight, Activity, Phone, Search, Bell, User, 
   Menu, X, ShieldCheck, Clock, Smile, Baby, Camera,
   MessageSquare, HelpCircle, Star, Settings, Layout,
-  Layers, Database, Play, Thermometer
+  Layers, Database, Play, Thermometer, LogOut, ArrowRight,
+  History, CreditCard, Wallet, Share2, Pill, Ambulance,
+  UserPlus, CheckCircle2, ChevronLeft, Scissors
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { db, handleFirestoreError, OperationType } from './lib/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
+import firebaseConfig from '../firebase-applet-config.json';
+import { collection, onSnapshot, query, orderBy, setDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { supabase } from './lib/supabase';
 
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
@@ -26,16 +31,64 @@ interface AppSection {
 
 // --- Components ---
 
-const GlobalBackground = () => (
-  <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FDFDFD]">
-    <div className="absolute inset-0 bg-radial-[circle_at_50%_50%] from-emerald-500/5 via-transparent to-transparent opacity-40" />
-    {/* Clean set of floating background elements */}
-    <div className="absolute inset-0 opacity-20">
-       {[Plus, Activity, Heart, ShieldCheck, Zap, Thermometer].map((icon, i) => (
-         <HealthcareElement key={i} icon={icon} i={i} />
-       ))}
+const GlobalBackground = () => {
+  const { scrollYProgress } = useScroll();
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 45]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.2, 1]);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#FDFDFD]">
+      <motion.div 
+        style={{ rotate, scale }}
+        className="absolute inset-0 bg-radial-[circle_at_50%_50%] from-rose-500/5 via-transparent to-transparent opacity-40" 
+      />
+      
+      {/* Flying Medical Items */}
+      <div className="absolute inset-0">
+         {[
+           { icon: Ambulance, color: 'text-rose-500/20' },
+           { icon: Pill, color: 'text-indigo-500/20' },
+           { icon: Heart, color: 'text-red-500/20' },
+           { icon: Stethoscope, color: 'text-slate-500/10' },
+           { icon: Plus, color: 'text-rose-600/10' },
+           { icon: Microscope, color: 'text-blue-500/15' },
+           { icon: Activity, color: 'text-emerald-500/10' },
+         ].map((item, i) => (
+           <FlyingMedicalBrand key={i} icon={item.icon} color={item.color} i={i} />
+         ))}
+      </div>
+
+      {/* 3D Background Elements Rotation */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-5">
+         <motion.div 
+           style={{ rotateY: rotate, rotateX: rotate }}
+           className="w-[800px] h-[800px] border-[40px] border-rose-500 rounded-[100px] blur-3xl"
+         />
+      </div>
     </div>
-  </div>
+  );
+};
+
+const FlyingMedicalBrand = ({ icon: Icon, color, i }: { icon: any, color: string, i: number }) => (
+  <motion.div
+    initial={{ opacity: 0, x: i % 2 === 0 ? -100 : 100, y: Math.random() * 1000 }}
+    animate={{ 
+      opacity: [0, 0.4, 0.4, 0],
+      x: [i % 2 === 0 ? -100 : 1100, i % 2 === 0 ? 1100 : -100],
+      y: [Math.random() * 800, Math.random() * 800],
+      rotate: [0, 360],
+      scale: [0.8, 1.2, 0.8]
+    }}
+    transition={{ 
+      duration: 30 + i * 5, 
+      repeat: Infinity, 
+      ease: "linear",
+      delay: i * 2 
+    }}
+    className={`absolute pointer-events-none ${color}`}
+  >
+    <Icon size={40 + (i % 3) * 20} />
+  </motion.div>
 );
 
 const isWebGLAvailable = () => {
@@ -60,9 +113,9 @@ const SafeSpline = (props: any) => {
 
   if (hasWebGL === false) {
     return (
-      <div className="w-full h-full bg-gradient-to-br from-emerald-500/5 to-blue-500/5 flex items-center justify-center">
+      <div className="w-full h-full bg-gradient-to-br from-rose-500/5 to-indigo-500/5 flex items-center justify-center">
         <div className="text-center p-8">
-          <Activity size={40} className="text-emerald-500/20 mx-auto mb-4" />
+          <Activity size={40} className="text-rose-500/20 mx-auto mb-4" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nexus Visualizer Offline</p>
         </div>
       </div>
@@ -73,35 +126,44 @@ const SafeSpline = (props: any) => {
 };
 
 const HealthcareElement = ({ icon: Icon, i }: { icon: any, i: number }) => {
-  const isCapsule = i % 2 === 0;
+  const isCapsule = i % 3 === 0;
+  const isTablet = i % 3 === 1;
+  const isPill = i % 3 === 2;
   
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0 }}
+      initial={{ opacity: 0, scale: 0.5, y: 0 }}
       animate={{ 
-        opacity: [0, 0.4, 0],
-        y: [0, -120, 0],
-        x: [0, i % 2 === 0 ? 40 : -40, 0],
-        rotate: [0, 360],
-        scale: [1, 1.1, 1],
+        opacity: [0, 0.6, 0.4, 0],
+        y: [0, -300, -600],
+        x: [0, Math.sin(i) * 50, Math.sin(i + 1) * 100],
+        rotate: [0, 360 * (i % 2 === 0 ? 1 : -1)],
+        scale: [1, 1.1, 0.9, 1],
       }}
       transition={{ 
-        duration: 15 + i * 5, 
+        duration: 25 + i * 10, 
         repeat: Infinity,
-        ease: "linear"
+        ease: "easeInOut",
+        delay: i * 3
       }}
       className="absolute pointer-events-none"
       style={{
-        left: `${(i * 20) % 80 + i * 2}%`,
-        top: `${(i * 15) % 70 + 20}%`,
+        left: `${(i * 12) % 95}%`,
+        bottom: "-150px",
         zIndex: 5
       }}
     >
       <div className={`
-        ${isCapsule ? 'w-10 h-20 rounded-full' : 'w-16 h-8 rounded-full'} 
-        border-2 border-emerald-500/20 flex items-center justify-center bg-white/20 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.05)]
+        ${isCapsule ? 'w-12 h-26 rounded-full' : isTablet ? 'w-16 h-16 rounded-full' : 'w-20 h-10 rounded-full'} 
+        glass-neu border-white/60 flex items-center justify-center shadow-2xl relative overflow-hidden group
       `}>
-        <Icon size={20} className="text-emerald-500 opacity-60" />
+        {/* Glossy Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/5 via-transparent to-white/40 pointer-events-none" />
+        
+        {/* Internal Glow */}
+        <div className={`absolute inset-[10%] rounded-full ${i % 2 === 0 ? 'bg-rose-500/10' : 'bg-slate-200/50'} blur-md animate-pulse`} />
+        
+        <Icon size={isCapsule ? 22 : 18} className={`text-rose-500 transition-all duration-1000 ${i % 2 === 0 ? 'opacity-30' : 'opacity-20'}`} />
       </div>
     </motion.div>
   );
@@ -114,7 +176,7 @@ const SectionWrapper = ({ children, title, subtitle, id, fullWidth, index = 0 }:
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
-          className="w-12 lg:w-20 h-1.5 bg-emerald-500 mb-6 lg:mx-auto rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+          className="w-12 lg:w-20 h-1.5 bg-rose-500 mb-6 lg:mx-auto rounded-full shadow-[0_0_20px_rgba(244,63,94,0.4)]"
         />
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
@@ -145,43 +207,67 @@ const GallerySection = ({ index = 0 }: { index?: number }) => (
           whileHover={{ y: -8, scale: 1.02 }}
           className="glass-neu aspect-square flex items-center justify-center relative group cursor-pointer border-white/40 bg-white/40"
         >
-          <div className="absolute inset-4 glass-glossy rounded-[32px] flex items-center justify-center bg-emerald-50/20">
-            <Camera size={28} className="opacity-20 group-hover:scale-125 group-hover:opacity-100 transition-all text-emerald-600" />
+          <div className="absolute inset-4 glass-glossy rounded-[32px] flex items-center justify-center bg-rose-50/20">
+            <Camera size={28} className="opacity-20 group-hover:scale-125 group-hover:opacity-100 transition-all text-rose-600" />
           </div>
-          <div className="absolute inset-x-0 bottom-8 text-center text-[8px] lg:text-[10px] uppercase tracking-[0.3em] font-bold opacity-0 group-hover:opacity-100 transition-all text-emerald-600">Scan Node {i}</div>
+          <div className="absolute inset-x-0 bottom-8 text-center text-[8px] lg:text-[10px] uppercase tracking-[0.3em] font-bold opacity-0 group-hover:opacity-100 transition-all text-rose-600">Scan Node {i}</div>
         </motion.div>
       ))}
     </div>
   </SectionWrapper>
 );
 
-const TestimonialSection = ({ index = 0 }: { index?: number }) => (
-  <SectionWrapper id="testimonials" title="Patient Pulse" subtitle="What the Bikaner community says" index={index}>
-    <div className="flex gap-10 overflow-x-auto no-scrollbar pb-16 px-6 lg:px-0 scroll-smooth">
-      {[
-        { name: 'Rajesh K.', text: 'Expert treatment and high-tech facility. Gangashahar hub is a lifesaver.' },
-        { name: 'Suman V.', text: 'The nexus pharmacy dispatch is incredibly fast. Best care for kids.' },
-        { name: 'Amit S.', text: 'Autonomous diagnosis saved us 4 hours of travel. Truly revolutionary.' }
-      ].map((t, i) => (
-        <div key={i} className="min-w-[320px] lg:min-w-[400px] glass-neu p-10 lg:p-12 flex flex-col justify-between border-white/80 bg-white/60">
-           <div className="flex gap-1.5 text-yellow-500 mb-8">
-              {[1,2,3,4,5].map(j => <Star key={j} size={16} fill="currentColor" stroke="none" />)}
-           </div>
-           <p className="text-slate-600 italic font-light leading-relaxed mb-10 text-base lg:text-lg">"{t.text}"</p>
-           <div className="flex items-center gap-5">
-              <div className="w-14 h-14 glass-neu !bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold shadow-xl shadow-emerald-500/20 !border-none">
-                 {t.name[0]}
-              </div>
-              <div className="flex flex-col">
-                <span className="font-bold text-slate-900 text-sm lg:text-base">{t.name}</span>
-                <span className="text-[10px] uppercase tracking-widest text-emerald-600 font-bold opacity-70">Verified Node Resident</span>
-              </div>
-           </div>
+const TestimonialSection = ({ index = 0 }: { index?: number }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  return (
+    <SectionWrapper id="testimonials" title="Patient Pulse" subtitle="What the Bikaner community says" index={index}>
+      <div className="relative group">
+        <div 
+          ref={containerRef}
+          className="grid grid-flow-col auto-cols-[calc(100%-48px)] md:auto-cols-[calc(33.33%-32px)] gap-6 lg:gap-10 overflow-x-auto no-scrollbar pb-16 px-6 lg:px-0 scroll-smooth content-stretch"
+        >
+          {[
+            { name: 'Rajesh K.', text: 'Expert treatment and high-tech facility. Gangashahar hub is a lifesaver.' },
+            { name: 'Suman V.', text: 'The nexus pharmacy dispatch is incredibly fast. Best care for kids.' },
+            { name: 'Amit S.', text: 'Autonomous diagnosis saved us 2 hours of travel. Truly revolutionary.' },
+            { name: 'Priya M.', text: 'Digital records are so easy to access. Best hospital in Bikaner.' },
+            { name: 'Sunil J.', text: 'The staff is very friendly and the node technology is amazing.' },
+            { name: 'Mehta Ji', text: 'OPD registration was smooth and the wait times were minimal.' }
+          ].map((t, i) => (
+            <div key={i} className="glass-neu p-8 lg:p-10 flex flex-col justify-between border-white/80 bg-white/60 shadow-xl self-stretch">
+               <div>
+                 <div className="flex gap-1 text-yellow-500 mb-6">
+                    {[1,2,3,4,5].map(j => <Star key={j} size={14} fill="currentColor" stroke="none" />)}
+                 </div>
+                 <p className="text-slate-600 italic font-light leading-relaxed mb-8 text-base line-clamp-4">"{t.text}"</p>
+               </div>
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 glass-neu !bg-rose-500 rounded-xl flex items-center justify-center text-white font-bold shadow-lg !border-none shrink-0">
+                     {t.name[0]}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 text-sm whitespace-nowrap">{t.name}</span>
+                    <span className="text-[8px] uppercase tracking-widest text-rose-600 font-bold opacity-70">Verified</span>
+                  </div>
+               </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-  </SectionWrapper>
-);
+        
+        {/* Animated Scroll Arrow */}
+        <motion.div 
+          animate={{ x: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden lg:flex w-12 h-12 glass-neu-red items-center justify-center rounded-full shadow-2xl cursor-pointer"
+          onClick={() => containerRef.current?.scrollBy({ left: 400, behavior: 'smooth' })}
+        >
+          <ArrowRight size={24} />
+        </motion.div>
+      </div>
+    </SectionWrapper>
+  );
+};
 
 const EmergencyControl = ({ index = 0 }: { index?: number }) => (
   <section id="emergency" className="w-full py-20 lg:py-32 px-6 lg:px-20 relative overflow-hidden">
@@ -303,12 +389,12 @@ const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) =
           whileTap={{ scale: 0.95 }}
           className="glass-neu p-8 lg:p-12 text-center flex flex-col items-center group cursor-pointer"
         >
-          <div className="w-16 h-16 lg:w-24 lg:h-24 bg-emerald-50 rounded-full mb-6 lg:mb-8 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 glass-neu !shadow-sm">
+          <div className="w-16 h-16 lg:w-24 lg:h-24 bg-rose-50 rounded-full mb-6 lg:mb-8 flex items-center justify-center text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 glass-neu !shadow-sm">
             <User size={36} />
           </div>
           <h5 className="font-bold text-slate-800 text-sm lg:text-lg whitespace-nowrap uppercase tracking-tight">{staff.name}</h5>
-          <p className="text-[8px] lg:text-[10px] font-bold text-emerald-600/60 uppercase tracking-[0.2em] mt-2">{staff.role}</p>
-          <div className="mt-4 px-4 py-1.5 glass-glossy rounded-full text-[7px] lg:text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
+          <p className="text-[8px] lg:text-[10px] font-bold text-rose-600/60 uppercase tracking-[0.2em] mt-2">{staff.role}</p>
+          <div className="mt-4 px-4 py-1.5 glass-glossy rounded-full text-[7px] lg:text-[9px] font-bold text-rose-600 uppercase tracking-widest">
              Node {staff.dept}
           </div>
         </motion.div>
@@ -322,7 +408,7 @@ const CategoryScroll = () => {
     { n: 'Surgery', i: Zap, c: 'text-blue-500' },
     { n: 'Pediatric', i: Baby, c: 'text-purple-500' },
     { n: 'Heart', i: Heart, c: 'text-red-500' },
-    { n: 'Dental', i: ShieldCheck, c: 'text-emerald-500' },
+    { n: 'Dental', i: ShieldCheck, c: 'text-rose-500' },
     { n: 'Labs', i: Microscope, c: 'text-indigo-500' },
     { n: 'Vision', i: Camera, c: 'text-orange-500' }
   ];
@@ -346,172 +432,257 @@ const CategoryScroll = () => {
   );
 };
 
-const Hero = ({ config }: { config: AppSection }) => (
-  <section id="hero" className="relative min-h-screen bg-[#FDFDFD] overflow-hidden flex flex-col lg:flex-row">
-    {/* Animated Background Stroke */}
-    <div className="absolute inset-x-0 top-0 h-screen pointer-events-none opacity-5">
-      <svg className="w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-        <path d="M0,500 Q250,200 500,500 T1000,500" fill="none" stroke="#ef4444" strokeWidth="20" className="animated-stroke" />
-      </svg>
-    </div>
+const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] }) => {
+  const [activeBanner, setActiveBanner] = useState(0);
 
-    {/* Left Content Side */}
-    <div className="flex-1 flex flex-col justify-center px-8 lg:px-24 py-20 lg:py-0 relative z-20">
-      <motion.div
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-      >
-        <div className="flex items-center gap-4 mb-12">
-          <div className="w-14 h-14 glass-neu-red flex items-center justify-center text-white shadow-2xl !rounded-2xl">
-            <Plus size={32} strokeWidth={4} />
-          </div>
-          <div className="px-5 py-2 glass-glossy rounded-full border border-red-100/50">
-             <span className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.4em]">Nexus Core Active</span>
-          </div>
-        </div>
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(() => {
+        setActiveBanner(prev => (prev + 1) % banners.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [banners]);
 
-        <div className="relative mb-8 h-[100px] lg:h-[180px] w-full">
-           <svg className="w-full h-full overflow-visible" viewBox="0 0 800 200">
-             <defs>
-               <linearGradient id="roseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                 <stop offset="0%" stopColor="#ef4444" />
-                 <stop offset="100%" stopColor="#e11d48" />
-               </linearGradient>
-             </defs>
-             <text 
-               x="0" 
-               y="150" 
-               className="font-display font-bold text-[100px] lg:text-[150px] uppercase tracking-tighter stroke-rose-500/30 fill-transparent animated-stroke"
-               strokeWidth="2"
-             >
-               DIVYAM
-             </text>
-             <text 
-               x="5" 
-               y="150" 
-               className="font-display font-bold text-[100px] lg:text-[150px] uppercase tracking-tighter fill-slate-900"
-             >
-               DIVYAM
-             </text>
-           </svg>
-        </div>
+  const currentBanner = banners[activeBanner] || {
+    title: "Healthcare",
+    subtitle: "Redefined",
+    description: "Precision diagnostics & world-class care, integrated into Bikaner's most advanced autonomous node."
+  };
 
-        <h1 className="text-6xl lg:text-[100px] font-display font-medium leading-[0.85] text-[#1D1D1F] mb-12 tracking-tighter text-3d px-1 relative">
-           <motion.span 
-             initial={{ opacity: 0, y: 40 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.2, duration: 0.8 }}
-             className="block"
-           >
-             Healthcare
-           </motion.span>
-           <motion.span 
-             initial={{ opacity: 0, scale: 0.9 }}
-             animate={{ opacity: 1, scale: 1 }}
-             transition={{ delay: 0.5, duration: 0.8 }}
-             className="text-3d-red italic"
-           >
-             Redefined
-           </motion.span>
-        </h1>
+  return (
+    <section id="hero" className="relative min-h-screen bg-[#FDFDFD] overflow-hidden flex flex-col lg:flex-row">
+      {/* Animated Background Stroke */}
+      <div className="absolute inset-x-0 top-0 h-screen pointer-events-none opacity-5">
+        <svg className="w-full h-full" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+          <path d="M0,500 Q250,200 500,500 T1000,500" fill="none" stroke="#ef4444" strokeWidth="20" className="animated-stroke" />
+        </svg>
+      </div>
 
-        <p className="text-xl lg:text-2xl text-slate-500 max-w-lg mb-16 font-light leading-relaxed opacity-80">
-          Precision diagnostics & world-class care, integrated into Bikaner's most advanced autonomous node.
-        </p>
-
-        <div className="flex flex-wrap gap-8 mb-20 lg:mb-32">
-          <button 
-            onClick={() => document.getElementById('doctors')?.scrollIntoView({ behavior: 'smooth' })}
-            className="glass-neu-red !py-7 !px-16 !text-xs !font-bold !uppercase !tracking-widest !rounded-full shadow-[0_20px_50px_rgba(239,68,68,0.3)] hover:scale-110 active:scale-95 transition-all"
+      {/* Left Content Side */}
+      <div className="flex-1 flex flex-col justify-center px-6 lg:px-24 py-24 lg:py-0 relative z-20">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeBanner}
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 30 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
           >
-            Access Care Node
-          </button>
-          <button 
-            onClick={() => document.getElementById('emergency')?.scrollIntoView({ behavior: 'smooth' })}
-            className="glass-neu !py-7 !px-16 !text-xs !font-bold !uppercase !tracking-widest !rounded-full flex items-center gap-4 text-slate-900 border border-slate-100 hover:bg-slate-50 transition-all shadow-xl"
-          >
-            Emergency SOS <Phone size={18} className="text-rose-500" />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between lg:justify-start lg:gap-20 border-t border-slate-100 pt-12">
-           <div className="glass-neu p-8 rounded-[40px] bg-white/40 group hover:bg-white transition-colors">
-              <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-2 opacity-60">Status: Operational</div>
-              <div className="text-3xl font-display font-medium text-slate-900 tracking-tighter">12 Active Hubs</div>
-           </div>
-           <div className="flex items-center gap-6 group cursor-pointer">
-              <div className="w-16 h-16 rounded-full glass-neu-red flex items-center justify-center text-white group-hover:rotate-12 transition-transform shadow-2xl">
-                 <Play size={24} fill="currentColor" />
+            <div className="flex items-center gap-4 mb-8 lg:mb-12">
+              <div className="w-12 h-12 lg:w-14 lg:h-14 glass-neu-red flex items-center justify-center text-white shadow-2xl !rounded-2xl shrink-0">
+                <Plus className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={4} />
               </div>
-              <span className="text-[11px] font-bold text-slate-900 uppercase tracking-[0.2em]">Watch Overview</span>
-           </div>
-        </div>
-      </motion.div>
-    </div>
+              <div className="px-4 lg:px-5 py-1.5 lg:py-2 glass-glossy rounded-full border border-red-100/50">
+                 <span className="text-[8px] lg:text-[10px] font-bold text-rose-500 uppercase tracking-[0.4em]">Nexus Core Active</span>
+              </div>
+            </div>
 
-    {/* Right Spline Side */}
-    <div className="flex-1 relative min-h-[400px] lg:min-h-screen bg-[#F5F5F7] lg:rounded-l-[120px] overflow-hidden border-l border-white/50 shadow-inner">
-       <Suspense fallback={
-         <div className="w-full h-full flex items-center justify-center">
-            <div className="animate-spin w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full" />
+            <div className="relative mb-6 lg:mb-8 h-[80px] lg:h-[180px] w-full">
+               <svg className="w-full h-full overflow-visible" viewBox="0 0 800 200">
+                 <text 
+                   x="0" 
+                   y="150" 
+                   className="font-display font-bold text-[80px] lg:text-[150px] uppercase tracking-tighter stroke-rose-500/30 fill-transparent animated-stroke"
+                   strokeWidth="2"
+                 >
+                   DIVYAM
+                 </text>
+                 <text 
+                   x="5" 
+                   y="150" 
+                   className="font-display font-bold text-[80px] lg:text-[150px] uppercase tracking-tighter fill-slate-900"
+                 >
+                   DIVYAM
+                 </text>
+               </svg>
+            </div>
+
+            <h1 className="text-5xl lg:text-[100px] font-display font-medium leading-[0.85] text-[#1D1D1F] mb-10 lg:mb-12 tracking-tighter text-3d px-1 relative">
+               <motion.span 
+                 initial={{ opacity: 0, y: 40 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 className="block"
+               >
+                 {currentBanner.title}
+               </motion.span>
+               <motion.span 
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 className="text-3d-red italic"
+               >
+                 {currentBanner.subtitle}
+               </motion.span>
+            </h1>
+
+            <p className="text-lg lg:text-2xl text-slate-500 max-w-lg mb-12 lg:mb-16 font-light leading-relaxed opacity-80">
+              {currentBanner.description}
+            </p>
+
+            {/* Horizontal Layout for Mobile Buttons */}
+            <div className="flex flex-row lg:flex-wrap gap-4 lg:gap-8 mb-16 lg:mb-32 overflow-x-auto no-scrollbar py-4 px-1">
+              <button 
+                onClick={() => document.getElementById('doctors')?.scrollIntoView({ behavior: 'smooth' })}
+                className="glass-neu-red flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full shadow-lg lg:shadow-[0_20px_50px_rgba(239,68,68,0.3)] hover:scale-105 active:scale-95 transition-all"
+              >
+                {currentBanner.button1 || "Access Care"}
+              </button>
+              <button 
+                onClick={() => document.getElementById('emergency')?.scrollIntoView({ behavior: 'smooth' })}
+                className="glass-neu flex-shrink-0 !py-4 lg:!py-7 px-8 lg:!px-16 text-[9px] lg:!text-xs !font-bold !uppercase !tracking-widest !rounded-full flex items-center gap-3 lg:gap-4 text-slate-900 border border-slate-100 hover:bg-slate-50 transition-all shadow-md lg:shadow-xl"
+              >
+                {currentBanner.button2 || "緊急 SOS"} <Phone className="w-3.5 h-3.5 lg:w-4.5 lg:h-4.5 text-rose-500" />
+              </button>
+            </div>
+
+            {/* Banner Indicators */}
+            {banners.length > 1 && (
+              <div className="flex gap-2 mb-8">
+                {banners.map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setActiveBanner(i)}
+                    className={`h-1 rounded-full transition-all duration-500 ${activeBanner === i ? 'w-8 bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'w-4 bg-slate-200'}`} 
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between lg:justify-start lg:gap-20 border-t border-slate-100 pt-10 lg:pt-12">
+               <div className="glass-neu p-6 lg:p-8 rounded-[32px] lg:rounded-[40px] bg-white/40 group hover:bg-white transition-colors">
+                  <div className="text-[8px] lg:text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1 lg:mb-2 opacity-60">Status: Operational</div>
+                  <div className="text-xl lg:text-3xl font-display font-medium text-slate-900 tracking-tighter">12 Active Hubs</div>
+               </div>
+               <div className="flex items-center gap-4 lg:gap-6 group cursor-pointer">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full glass-neu-red flex items-center justify-center text-white group-hover:rotate-12 transition-transform shadow-xl">
+                     <Play className="w-5 h-5 lg:w-6 lg:h-6" fill="currentColor" />
+                  </div>
+                  <span className="text-[9px] lg:text-[11px] font-bold text-slate-900 uppercase tracking-[0.2em]">Overview</span>
+               </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Right Spline Side / Banner Flip Card for Mobile */}
+      <div className="flex-1 relative min-h-[450px] lg:min-h-screen bg-[#F5F5F7] lg:rounded-l-[120px] overflow-hidden border-l border-white/50 shadow-inner">
+         <div className="lg:hidden absolute inset-0 flex items-center justify-center p-6 perspective-1000">
+            <motion.div 
+               whileTap={{ rotateY: 180 }}
+               transition={{ duration: 0.6, type: 'spring' }}
+               className="w-full aspect-[4/5] relative preserve-3d"
+               style={{ transformStyle: 'preserve-3d' }}
+            >
+               {/* Front */}
+               <div className="absolute inset-0 backface-hidden rounded-[40px] overflow-hidden shadow-3xl bg-slate-900 border-none">
+                  <div className="absolute inset-0 bg-gradient-to-br from-rose-500/20 to-transparent" />
+                  <SafeSpline 
+                     scene="https://prod.spline.design/WG1dWYKv2NAjdcbA/scene.splinecode" 
+                  />
+                  <div className="absolute bottom-10 left-10">
+                     <p className="text-rose-500 font-bold uppercase tracking-[0.3em] text-[10px]">Tap to Flip Info</p>
+                     <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter">Nexus v3.0</h3>
+                  </div>
+               </div>
+               {/* Back */}
+               <div className="absolute inset-0 backface-hidden rounded-[40px] bg-white p-10 flex flex-col justify-center border border-rose-100 shadow-3xl" style={{ transform: 'rotateY(180deg)' }}>
+                  <div className="w-14 h-14 glass-neu-red rounded-2xl flex items-center justify-center mb-8">
+                     <Activity size={32} />
+                  </div>
+                  <h3 className="text-3xl font-display font-bold text-slate-900 mb-6 uppercase">Node Health</h3>
+                  <div className="space-y-4">
+                     <div className="flex justify-between border-b pb-2">
+                        <span className="text-[10px] font-bold text-slate-400">UPTIME</span>
+                        <span className="text-rose-500 font-bold">99.9%</span>
+                     </div>
+                     <div className="flex justify-between border-b pb-2">
+                        <span className="text-[10px] font-bold text-slate-400">LATENCY</span>
+                        <span className="text-slate-900 font-bold">0.4ms</span>
+                     </div>
+                  </div>
+               </div>
+            </motion.div>
          </div>
-       }>
-          <div className="w-full h-full scale-110">
-             <SafeSpline 
-               scene="https://prod.spline.design/WG1dWYKv2NAjdcbA/scene.splinecode" 
-             />
-          </div>
-          
-          {/* Overlay Stats Tablet */}
-          <div className="absolute inset-x-10 bottom-14 lg:bottom-20 p-12 glass-neu border border-white shadow-3xl flex items-center justify-between group hover:-translate-y-4 transition-transform bg-white/60">
-             <div>
-                <div className="text-[11px] font-bold text-rose-500 uppercase tracking-[0.5em] mb-3">Live Bio-Feed</div>
-                <div className="text-3xl lg:text-5xl font-display font-medium text-slate-900 tracking-tighter text-3d px-1">Gangashahar Node</div>
-             </div>
-             <div className="w-20 h-20 glass-neu-red rounded-3xl flex items-center justify-center text-white shadow-2xl group-hover:rotate-12 transition-transform">
-                <Activity size={40} className="animate-pulse" />
-             </div>
-          </div>
-       </Suspense>
-    </div>
-  </section>
-);
 
-const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: number }) => (
-  <SectionWrapper id="facilities" title="Core Facilities" subtitle="Advanced technology at your service" index={index}>
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 px-4 lg:px-0">
-      {config.items?.map((item, i) => (
-        <motion.div
-           key={i}
-           whileHover={{ y: -10 }}
-           className="glass-neu p-10 group border-white/50 bg-white/40 overflow-hidden"
-        >
-          <div className="w-18 h-18 glass-neu-red flex items-center justify-center text-white mb-8 group-hover:rotate-12 transition-all duration-500 !shadow-lg">
-            <Layers size={32} className="transition-transform" />
-          </div>
-          <h3 className="text-2xl font-display font-medium mb-4 text-slate-900 uppercase tracking-tight text-3d px-1">{item.title}</h3>
-          <p className="text-slate-500 text-base leading-relaxed font-light opacity-80">{item.desc}</p>
-          <div className="mt-10 flex items-center justify-between">
-             <div className="px-4 py-1.5 glass-glossy rounded-full border border-rose-100/50">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-rose-500">Active Node</span>
-             </div>
-             <div className="w-12 h-12 glass-neu-red rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all shadow-xl">
-                <ChevronRight size={20} />
-             </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </SectionWrapper>
-);
+         <div className="hidden lg:block w-full h-full scale-110">
+            <SafeSpline 
+               scene="https://prod.spline.design/WG1dWYKv2NAjdcbA/scene.splinecode" 
+            />
+         </div>
+         
+         <div className="hidden lg:flex absolute inset-x-10 bottom-14 lg:bottom-20 p-12 glass-neu border border-white shadow-3xl items-center justify-between group hover:-translate-y-4 transition-transform bg-white/60">
+            <div>
+               <div className="text-[11px] font-bold text-rose-500 uppercase tracking-[0.5em] mb-3">Live Bio-Feed</div>
+               <div className="text-3xl lg:text-5xl font-display font-medium text-slate-900 tracking-tighter text-3d px-1">Gangashahar Node</div>
+            </div>
+            <div className="w-20 h-20 glass-neu-red rounded-3xl flex items-center justify-center text-white shadow-2xl group-hover:rotate-12 transition-transform">
+               <Activity size={40} className="animate-pulse" />
+            </div>
+         </div>
+      </div>
+    </section>
+  );
+};
+
+const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: number }) => {
+  const getIcon = (title: string) => {
+    const t = title.toLowerCase();
+    if (t.includes('pediatrics')) return <Baby size={32} />;
+    if (t.includes('gyna')) return <Heart size={32} />;
+    if (t.includes('pharmacy')) return <Pill size={32} />;
+    if (t.includes('lab')) return <Microscope size={32} />;
+    if (t.includes('icu') || t.includes('critical')) return <Activity size={32} />;
+    if (t.includes('theatre') || t.includes('surgical')) return <Scissors size={32} />;
+    return <Layers size={32} />;
+  };
+
+  return (
+    <SectionWrapper id="facilities" title="Core Facilities" subtitle="Advanced technology at your service" index={index}>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-12 px-4 lg:px-0">
+        {config.items?.map((item, i) => (
+          <motion.div
+             key={i}
+             whileHover={{ y: -10, scale: 1.02 }}
+             className="glass-neu p-4 lg:p-12 aspect-square lg:aspect-auto group border-white/80 bg-white/40 overflow-hidden relative shadow-all flex flex-col justify-between"
+          >
+            {/* Native app hint label */}
+            <div className="absolute top-4 right-4 opacity-10 font-bold text-[8px] uppercase tracking-tighter">Nexus Module</div>
+            
+            <div className="w-12 h-12 lg:w-24 lg:h-24 glass-neu-red flex items-center justify-center text-white mb-2 lg:mb-10 group-hover:rotate-12 transition-all duration-700 !shadow-2xl !rounded-[20px] lg:!rounded-[28px] shrink-0">
+              <div className="lg:hidden scale-50">{getIcon(item.title)}</div>
+              <div className="hidden lg:block scale-110">{getIcon(item.title)}</div>
+            </div>
+            
+            <div className="flex-1 flex flex-col justify-center">
+              <h3 className="text-[10px] lg:text-3xl font-display font-medium mb-1 lg:mb-6 text-slate-900 uppercase tracking-tighter text-3d px-1 leading-tight">{item.title}</h3>
+              <p className="text-slate-500 text-[8px] lg:text-xl leading-tight lg:leading-relaxed font-light opacity-80 mb-2 lg:mb-8 line-clamp-2 lg:line-clamp-none">{item.desc}</p>
+            </div>
+            
+            <div className="flex items-center justify-between mt-auto pt-2 lg:pt-6 border-t border-rose-100/30">
+               <div className="flex items-center gap-1.5 lg:gap-3">
+                  <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                  <span className="text-[7px] lg:text-[10px] font-bold uppercase tracking-widest text-rose-500/60">Live Node</span>
+               </div>
+               <motion.div 
+                whileHover={{ x: 5 }}
+                className="w-6 h-6 lg:w-14 lg:h-14 glass-neu bg-white/90 rounded-full flex items-center justify-center text-rose-500 shadow-xl border-white group-hover:bg-rose-500 group-hover:text-white transition-colors"
+               >
+                  <ChevronRight className="scale-50 lg:scale-100" />
+               </motion.div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </SectionWrapper>
+  );
+};
 
 const Navbar = () => (
   <>
     {/* Android Style Top Bar - Mobile Only */}
     <div className="android-top-bar flex lg:hidden !bg-white/40 !backdrop-blur-3xl !border-white/50">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 glass-neu !bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+        <div className="w-10 h-10 glass-neu !bg-rose-500 rounded-xl flex items-center justify-center text-white">
           <Plus size={22} strokeWidth={4} />
         </div>
         <span className="font-display font-bold text-slate-900 tracking-tight text-lg">DIVYAM Hub</span>
@@ -543,7 +714,7 @@ const Navbar = () => (
           <button className="w-14 h-14 glass-neu flex items-center justify-center text-slate-500 active:scale-95 transition-all !rounded-2xl">
             <Bell size={22} />
           </button>
-          <button className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:!bg-emerald-500 transition-colors !rounded-2xl shadow-3xl">
+          <button className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:!bg-rose-500 transition-colors !rounded-2xl shadow-3xl">
             Nexus Console
           </button>
         </div>
@@ -553,12 +724,13 @@ const Navbar = () => (
 );
 
 const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }) => (
-  <nav className="fixed bottom-0 inset-x-0 h-20 bg-white/95 backdrop-blur-3xl z-50 flex lg:hidden items-center justify-around px-2 border-t border-emerald-50 shadow-[0_-4px_24px_rgba(0,0,0,0.02)] pb-safe">
+  <nav className="fixed bottom-0 inset-x-0 h-20 bg-white/95 backdrop-blur-3xl z-50 flex lg:hidden items-center justify-around px-2 border-t border-rose-50 shadow-[0_-4px_24px_rgba(0,0,0,0.02)] pb-safe">
      {[
        { id: 'home', icon: Home, label: 'Home' },
        { id: 'fac', icon: Layers, label: 'Labs' },
+       { id: 'pharm', icon: Pill, label: 'Store' },
        { id: 'sos', icon: Zap, label: 'SOS' },
-       { id: 'docs', icon: User, label: 'Admin' }
+       { id: 'profile', icon: User, label: 'Profile' }
      ].map(item => {
        const isActive = active === item.id;
        return (
@@ -566,9 +738,19 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
            key={item.id} 
            onClick={() => {
              set(item.id);
-             const targetId = item.id === 'home' ? 'hero' : item.id === 'fac' ? 'facilities' : item.id === 'sos' ? 'emergency' : 'doctors';
-             const el = document.getElementById(targetId);
-             el?.scrollIntoView({ behavior: 'smooth' });
+             const targets: Record<string, string> = {
+               home: 'hero',
+               fac: 'facilities',
+               pharm: 'pharmacy',
+               sos: 'emergency',
+               profile: 'hero' // Handled by auth modal if not logged in
+             };
+             if (item.id !== 'profile') {
+               const el = document.getElementById(targets[item.id]);
+               el?.scrollIntoView({ behavior: 'smooth' });
+             } else {
+               // Profile handling
+             }
            }}
            className="relative flex flex-col items-center justify-center w-full h-full transition-all duration-300"
          >
@@ -576,16 +758,16 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
              {isActive && (
                <motion.div 
                  layoutId="nav-pill" 
-                 className="absolute inset-x-[-12px] inset-y-[-4px] bg-emerald-100 rounded-full -z-10" 
+                 className="absolute inset-x-[-12px] inset-y-[-4px] bg-rose-100 rounded-full -z-10" 
                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                />
              )}
              <item.icon 
                size={24} 
-               className={`transition-colors duration-300 ${isActive ? 'text-emerald-900 stroke-[2.5px]' : 'text-slate-500 opacity-60'}`} 
+               className={`transition-colors duration-300 ${isActive ? 'text-rose-900 stroke-[2.5px]' : 'text-slate-500 opacity-60'}`} 
              />
            </div>
-           <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-emerald-900' : 'text-slate-400'}`}>
+           <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-rose-900' : 'text-slate-400'}`}>
              {item.label}
            </span>
          </button>
@@ -594,18 +776,238 @@ const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }
   </nav>
 );
 
-// --- Icons used in Mobile Nav ---
-const Home = ({ ...props }) => <Layout {...props} />;
+const AdminPanel = ({ onClose }: { onClose: () => void }) => {
+  const [logged, setLogged] = useState(false);
+  const [pass, setPass] = useState('');
+  const [userVal, setUserVal] = useState('');
+  const [banners, setBanners] = useState<any[]>([]);
+  const [newBanner, setNewBanner] = useState({ title: '', subtitle: '', description: '', button1: '', button2: '' });
 
-// --- Main App ---
+  useEffect(() => {
+    if (logged) {
+      const q = query(collection(db, "banners"), orderBy("order", "asc"));
+      const unsub = onSnapshot(q, (snap) => {
+        setBanners(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+      return () => unsub();
+    }
+  }, [logged]);
+
+  const handleLogin = () => {
+    if (userVal === '9928448633' && pass === '511083') {
+      setLogged(true);
+    } else {
+      alert('Unauthorized Console Access');
+    }
+  };
+
+  const addBanner = async () => {
+    await setDoc(doc(collection(db, "banners")), {
+      ...newBanner,
+      order: banners.length,
+      createdAt: new Date().toISOString()
+    });
+    setNewBanner({ title: '', subtitle: '', description: '', button1: '', button2: '' });
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (window.confirm('Confirm Banner Decommission?')) {
+      await deleteDoc(doc(db, "banners", id));
+    }
+  };
+
+  if (!logged) {
+    return (
+      <div className="h-screen flex items-center justify-center p-6 bg-slate-900">
+         <div className="glass-neu !bg-slate-800 p-10 w-full max-w-sm border-white/5">
+            <h2 className="text-3xl font-display font-bold text-white mb-8 uppercase text-center">Nexus Console</h2>
+            <div className="space-y-6">
+               <input type="text" placeholder="ADMIN NODE ID" onChange={e => setUserVal(e.target.value)} className="w-full bg-white/5 p-4 rounded-2xl border border-white/5 text-white" />
+               <input type="password" placeholder="NEXUS ACCESS KEY" onChange={e => setPass(e.target.value)} className="w-full bg-white/5 p-4 rounded-2xl border border-white/5 text-white" />
+               <button onClick={handleLogin} className="glass-neu-red w-full !py-4">Authorize</button>
+               <button onClick={onClose} className="w-full text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">Abort Mission</button>
+            </div>
+         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-slate-50 p-6 flex flex-col">
+       <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-display font-bold uppercase tracking-tighter">Nexus Control Hub</h2>
+          <button onClick={onClose} className="w-12 h-12 glass-neu flex items-center justify-center"><X /></button>
+       </div>
+       
+       <div className="flex-1 overflow-y-auto space-y-10 pb-20">
+          <div className="glass-neu p-8 bg-slate-900 text-white">
+             <div className="flex justify-between items-center mb-8">
+                <div>
+                   <div className="text-[10px] font-bold text-rose-500 uppercase tracking-[0.5em] mb-2">Global Override</div>
+                   <div className="text-3xl font-display">System Level 4</div>
+                </div>
+                <div className="w-14 h-14 glass-neu !bg-rose-500 rounded-2xl flex items-center justify-center">
+                   <Settings size={28} />
+                </div>
+             </div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 glass-neu bg-white/5 border-none">
+                   <div className="text-4xl font-display mb-2">99%</div>
+                   <div className="text-[8px] font-bold uppercase">CPU Load</div>
+                </div>
+                <div className="p-6 glass-neu bg-white/5 border-none">
+                   <div className="text-4xl font-display mb-2">12ms</div>
+                   <div className="text-[8px] font-bold uppercase">Latent Delay</div>
+                </div>
+             </div>
+          </div>
+
+          <div className="space-y-6">
+             <h5 className="text-[10px] font-bold text-slate-400 uppercase ml-1 tracking-widest">Banner Management</h5>
+             <div className="glass-neu p-8 bg-white space-y-4">
+                <input type="text" placeholder="TITLE" value={newBanner.title} onChange={e => setNewBanner({...newBanner, title: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
+                <input type="text" placeholder="SUBTITLE" value={newBanner.subtitle} onChange={e => setNewBanner({...newBanner, subtitle: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
+                <textarea placeholder="DESCRIPTION" value={newBanner.description} onChange={e => setNewBanner({...newBanner, description: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100" />
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="text" placeholder="BTN 1" value={newBanner.button1} onChange={e => setNewBanner({...newBanner, button1: e.target.value})} className="bg-slate-50 p-4 rounded-xl border border-slate-100" />
+                  <input type="text" placeholder="BTN 2" value={newBanner.button2} onChange={e => setNewBanner({...newBanner, button2: e.target.value})} className="bg-slate-50 p-4 rounded-xl border border-slate-100" />
+                </div>
+                <button onClick={addBanner} className="glass-neu-red w-full !py-4 uppercase font-bold text-[10px] tracking-widest">Deploy New Banner</button>
+             </div>
+
+             <div className="space-y-4">
+                {banners.map(b => (
+                  <div key={b.id} className="glass-neu p-6 bg-white flex justify-between items-start">
+                     <div>
+                        <div className="font-bold text-sm uppercase">{b.title}</div>
+                        <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{b.subtitle}</div>
+                     </div>
+                     <button onClick={() => deleteBanner(b.id)} className="text-rose-500 font-bold text-[8px] uppercase tracking-widest">Shutdown</button>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          <div className="space-y-6">
+             <h5 className="text-[10px] font-bold text-slate-400 uppercase ml-1 tracking-widest">Live Hub Management</h5>
+             {[
+               { n: 'Hero Animation', v: '0.8.4', s: true },
+               { n: 'Supabase Relay', v: 'Active', s: true },
+               { n: 'SOS Protocols', v: 'Hardened', s: false },
+               { n: 'Diagnostic AI', v: 'Node 12', s: true }
+             ].map(c => (
+               <div key={c.n} className="glass-neu p-6 bg-white flex justify-between items-center">
+                  <div>
+                    <div className="font-bold text-sm uppercase">{c.n}</div>
+                    <div className="text-[8px] font-bold text-slate-400">{c.v}</div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full p-1 transition-colors ${c.s ? 'bg-rose-500' : 'bg-slate-200'}`}>
+                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${c.s ? 'translate-x-6' : ''}`} />
+                  </div>
+               </div>
+             ))}
+          </div>
+       </div>
+    </div>
+  );
+};
 
 export default function App() {
   const [sections, setSections] = useState<AppSection[]>([]);
   const [mobileTab, setMobileTab] = useState('home');
   const [loading, setLoading] = useState(true);
+  
+  // Auth & Profile State
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isRegModalOpen, setIsRegModalOpen] = useState(false);
+  const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [regData, setRegData] = useState({ name: '', opd: '', mobile: '' });
+  const [ipdData, setIpdData] = useState<any[]>([]);
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
 
   useEffect(() => {
-    // In a real app, this fetches from Firebase
+    const unsub = onSnapshot(collection(db, "banners"), (snap) => {
+      setHeroBanners(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (u) => {
+      setUser(u);
+      if (u) {
+        const userDoc = await getDoc(doc(db, "users", u.uid));
+        if (userDoc.exists()) {
+          setProfile(userDoc.data());
+          checkSupabaseData(userDoc.data().opd);
+        } else {
+          setIsRegModalOpen(true);
+        }
+      } else {
+        setProfile(null);
+        setIpdData([]);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  const checkSupabaseData = async (opd: string) => {
+    if (!opd) return;
+    const { data, error } = await supabase
+      .from('patients_ipd')
+      .select('*')
+      .eq('opd_number', opd);
+    
+    if (data) {
+      setIpdData(data);
+    }
+  };
+
+  const handlePhoneLogin = async () => {
+    try {
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+      const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+      setConfirmationResult(result);
+      setIsOTPModalOpen(true);
+      setIsAuthModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send OTP. Check console.');
+    }
+  };
+
+  const handleOTPSubmit = async () => {
+    try {
+      await confirmationResult?.confirm(otp);
+      setIsOTPModalOpen(false);
+    } catch (err) {
+      alert('Invalid OTP');
+    }
+  };
+
+  const handleRegistrationSubmit = async () => {
+    if (!user) return;
+    await setDoc(doc(db, "users", user.uid), {
+      ...regData,
+      uid: user.uid,
+      createdAt: new Date().toISOString()
+    });
+    setProfile(regData);
+    checkSupabaseData(regData.opd);
+    setIsRegModalOpen(false);
+  };
+
+  useEffect(() => {
     // I'll simulate a fetch but provide default data for the demo
     const defaultSections: AppSection[] = [
       { id: 'hero', type: 'hero', enabled: true, order: 0, title: 'Divyam Nexus Hub' },
@@ -633,6 +1035,7 @@ export default function App() {
     ];
 
     const q = query(collection(db, "sections"), orderBy("order"));
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
         const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AppSection));
@@ -652,16 +1055,16 @@ export default function App() {
   if (loading) {
      return (
        <div className="h-screen flex flex-col items-center justify-center bg-health-bg">
-          <div className="w-16 h-16 bg-white rounded-3xl shadow-2xl flex items-center justify-center animate-bounce border border-emerald-100">
-             <Plus className="text-emerald-500 w-8 h-8 stroke-[3px]" />
+          <div className="w-16 h-16 bg-white rounded-3xl shadow-2xl flex items-center justify-center animate-bounce border border-rose-100">
+             <Plus className="text-rose-500 w-8 h-8 stroke-[3px]" />
           </div>
-          <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.4em] text-emerald-600 animate-pulse">Initializing Nexus Core</p>
+          <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.4em] text-rose-600 animate-pulse">Initializing Nexus Core</p>
        </div>
      );
   }
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen relative overflow-x-hidden selection:bg-rose-100 selection:text-rose-900">
       <GlobalBackground />
       <Navbar />
       
@@ -670,7 +1073,7 @@ export default function App() {
           <React.Fragment key={section.id}>
             {section.type === 'hero' && (
               <>
-                <Hero config={section} />
+                <Hero config={section} banners={heroBanners} />
                 <CategoryScroll />
               </>
             )}
@@ -679,10 +1082,10 @@ export default function App() {
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                   <div className="glass-neu p-16 rounded-[80px] aspect-square flex items-center justify-center bg-white/40">
                      <div className="w-full h-full glass-glossy rounded-[60px] flex items-center justify-center border-white/50">
-                        <Smile size={120} className="text-emerald-500/40 animate-pulse" />
+                        <Smile size={120} className="text-rose-500/40 animate-pulse" />
                      </div>
                   </div>
-                   <div>
+                  <div>
                     <h2 className="text-5xl lg:text-7xl font-display font-medium text-slate-900 mb-10 uppercase leading-[0.85] tracking-tighter text-3d">DECADES OF <br /><span className="text-rose-500 text-3d-red">HUMAN CARE</span></h2>
                     <p className="text-xl lg:text-2xl text-slate-500 font-light leading-relaxed mb-12 opacity-80">
                       Located near the Old Post Office in Gangashahar, Divyam stands as a beacon of advanced medical integration. 
@@ -716,7 +1119,7 @@ export default function App() {
                         className="glass-neu p-8 lg:p-12 text-center group cursor-pointer flex flex-col items-center"
                       >
                         <div className="relative w-28 lg:w-40 h-28 lg:h-40 mb-8 lg:mb-10">
-                           <div className="absolute inset-[-10px] glass-neu !rounded-full !bg-emerald-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <div className="absolute inset-[-10px] glass-neu !rounded-full !bg-rose-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                            <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white glass-glossy !p-1 shadow-2xl">
                               <div className="w-full h-full rounded-full overflow-hidden">
                                 {doc.image ? (
@@ -727,19 +1130,19 @@ export default function App() {
                                     referrerPolicy="no-referrer"
                                   />
                                 ) : (
-                                  <div className="w-full h-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                  <div className="w-full h-full bg-rose-50 flex items-center justify-center text-rose-500">
                                      <User size={48} />
                                   </div>
                                 )}
                               </div>
                            </div>
-                           <div className="absolute bottom-2 right-2 w-10 h-10 glass-neu !bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform shadow-xl">
+                           <div className="absolute bottom-2 right-2 w-10 h-10 glass-neu !bg-rose-500 rounded-full border-4 border-white flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform shadow-xl">
                               <Plus size={16} strokeWidth={4} />
                            </div>
                         </div>
                         
                         <h4 className="font-display text-lg lg:text-2xl font-bold text-slate-900 leading-tight mb-2 uppercase tracking-tighter text-3d px-1">{doc.name}</h4>
-                        <p className="text-[10px] lg:text-[12px] font-bold uppercase text-emerald-600/60 tracking-widest mb-6 opacity-80">{doc.role}</p>
+                        <p className="text-[10px] lg:text-[12px] font-bold uppercase text-rose-600/60 tracking-widest mb-6 opacity-80">{doc.role}</p>
                         
                         <div className="w-full mt-auto">
                            <button className="glass-neu w-full py-4 bg-slate-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all !rounded-full">
@@ -760,21 +1163,21 @@ export default function App() {
 
         <section className="section-width py-20 lg:py-32 mb-24 lg:mb-0 relative overflow-hidden">
            <div className="grid lg:grid-cols-3 gap-10 px-4 lg:px-0">
-              <div className="lg:col-span-2 glass-neu bg-emerald-50/30 min-h-[500px] relative group overflow-hidden border-none shadow-3xl">
-                 <div className="absolute inset-0 flex flex-col items-center justify-center text-emerald-200 p-10 text-center opacity-40">
+              <div className="lg:col-span-2 glass-neu bg-rose-50/30 min-h-[500px] relative group overflow-hidden border-none shadow-3xl">
+                 <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-200 p-10 text-center opacity-40">
                     <MapPin size={100} className="mb-8 animate-bounce" />
-                    <p className="text-lg font-bold uppercase tracking-[0.4em] text-emerald-600">Bikaner Location Hub</p>
+                    <p className="text-lg font-bold uppercase tracking-[0.4em] text-rose-600">Bikaner Location Hub</p>
                  </div>
                  
                  <div className="absolute bottom-10 lg:bottom-12 left-10 lg:left-12 right-10 lg:right-12 flex flex-col lg:flex-row gap-10 items-center justify-between">
                     <div className="glass-neu bg-white/80 backdrop-blur-3xl px-10 py-8 border-white shadow-2xl w-full lg:w-auto">
                         <div className="flex items-center gap-4 mb-4">
-                           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                           <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
                            <h5 className="font-bold text-slate-900 text-2xl uppercase tracking-tighter text-3d px-1">Divyam Node</h5>
                         </div>
                         <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest opacity-60">Near Old Post Office, Gangashahar, Bikaner</p>
                         <div className="flex gap-8 mt-10 pt-8 border-t border-slate-100">
-                           <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-emerald-600 uppercase hover:text-emerald-700 transition-colors">
+                           <a href="https://www.google.com/search?q=Divyam+Hospital+Bikaner" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-rose-600 uppercase hover:text-rose-700 transition-colors">
                               <Search size={18}/> Maps
                            </a>
                            <a href="https://www.justdial.com/Bikaner/Divyam-Hospital-Near-Old-Post-Office-Gangashahar/9999PX151.X151.180215161042.Z1G3" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-[10px] font-bold text-blue-600 uppercase hover:text-blue-700 transition-colors">
@@ -786,15 +1189,15 @@ export default function App() {
               </div>
               <div className="glass-neu p-12 flex flex-col justify-between bg-white/60 border-white shadow-3xl">
                  <div>
-                    <div className="w-16 h-16 glass-neu !bg-emerald-500 rounded-[28px] flex items-center justify-center text-white mb-12 shadow-xl shadow-emerald-500/30 !border-none">
+                    <div className="w-16 h-16 glass-neu !bg-rose-500 rounded-[28px] flex items-center justify-center text-white mb-12 shadow-xl shadow-rose-500/30 !border-none">
                        <Database size={32} />
                     </div>
-                    <h3 className="text-5xl font-display font-bold uppercase mb-12 leading-[0.9] tracking-tighter text-slate-900 text-3d px-1">Nexus <br />Command <br /><span className="text-emerald-500 text-3d-emerald">Live</span></h3>
+                    <h3 className="text-5xl font-display font-bold uppercase mb-12 leading-[0.9] tracking-tighter text-slate-900 text-3d px-1">Nexus <br />Command <br /><span className="text-rose-500 text-3d-red">Live</span></h3>
                     <div className="space-y-8">
                        {[
-                         { l: 'Node Latency', v: '0.02ms', c: 'text-emerald-500 text-3d-emerald' },
+                         { l: 'Node Latency', v: '0.02ms', c: 'text-rose-500 text-3d-red' },
                          { l: 'Capacity', v: '94%', c: 'text-blue-500' },
-                         { l: 'Accuracy', v: '99.9%', c: 'text-emerald-500' }
+                         { l: 'Accuracy', v: '99.9%', c: 'text-rose-500' }
                        ].map(i => (
                          <div key={i.l} className="flex justify-between items-center border-b border-slate-100 pb-5">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">{i.l}</span>
@@ -803,7 +1206,7 @@ export default function App() {
                        ))}
                     </div>
                  </div>
-                 <button className="glass-neu w-full h-20 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] rounded-full shadow-2xl hover:!bg-emerald-500 active:scale-95 transition-all text-xs mt-16 !border-none">
+                 <button className="glass-neu w-full h-20 bg-slate-900 text-white font-bold uppercase tracking-[0.2em] rounded-full shadow-2xl hover:!bg-rose-500 active:scale-95 transition-all text-xs mt-16 !border-none">
                     Enter Console Hub
                  </button>
               </div>
@@ -818,9 +1221,9 @@ export default function App() {
                 { q: 'Is emergency dispatch available 24/7?', a: 'Yes, our Bikaner dispatch unit is always active with an average 5-minute response time.' },
                 { q: 'How can I manage my data?', a: 'Through the Nexus Console, you have full transparency over your medical records and specialist input.' }
               ].map((faq, i) => (
-                <div key={i} className="glass-neu p-10 bg-white/60 border-white/40 group hover:bg-emerald-50/30 transition-colors">
+                <div key={i} className="glass-neu p-10 bg-white/60 border-white/40 group hover:bg-rose-50/30 transition-colors">
                    <h5 className="font-bold text-slate-800 flex items-center gap-4 text-lg lg:text-xl uppercase tracking-tighter text-3d px-1">
-                      <div className="w-10 h-10 glass-neu !bg-emerald-50 flex items-center justify-center text-emerald-500 !shadow-sm">
+                      <div className="w-10 h-10 glass-neu !bg-rose-50 flex items-center justify-center text-rose-500 !shadow-sm">
                          <HelpCircle size={20} />
                       </div>
                       {faq.q}
@@ -830,9 +1233,175 @@ export default function App() {
               ))}
            </div>
         </SectionWrapper>
+
+        {/* --- Modals & Overlays --- */}
+        <AnimatePresence>
+          {isAuthModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                onClick={() => setIsAuthModalOpen(false)}
+              />
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                className="relative glass-neu p-10 w-full max-w-md bg-white border-none shadow-[0_32px_64px_rgba(0,0,0,0.2)]"
+              >
+                <div className="w-16 h-16 glass-neu-red flex items-center justify-center mb-8 mx-auto shadow-xl">
+                  <User size={32} />
+                </div>
+                <h3 className="text-3xl font-display font-bold text-slate-900 text-center mb-2 uppercase tracking-tighter">Nexus Login</h3>
+                <p className="text-slate-500 text-center text-xs mb-10 font-bold uppercase tracking-widest opacity-60">Enter phone for relay access</p>
+                
+                <div className="space-y-6">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mobile Number</label>
+                      <input 
+                        type="text" 
+                        value={phoneNumber}
+                        onChange={e => setPhoneNumber(e.target.value)}
+                        placeholder="+91 99999 99999"
+                        className="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/20 font-bold"
+                      />
+                   </div>
+                   <button 
+                    onClick={handlePhoneLogin}
+                    className="glass-neu-red w-full !py-5 !rounded-2xl font-bold uppercase tracking-widest text-xs"
+                   >
+                     Send OTP
+                   </button>
+                   <div id="recaptcha-container"></div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {isOTPModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+              <motion.div 
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+                className="relative glass-neu p-10 w-full max-w-md bg-white border-none"
+              >
+                <h3 className="text-3xl font-display font-bold text-slate-900 text-center mb-8 uppercase">Verify OTP</h3>
+                <input 
+                  type="text" 
+                  value={otp}
+                  onChange={e => setOtp(e.target.value)}
+                  placeholder="000000"
+                  className="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center text-2xl font-display tracking-[1em] mb-8"
+                />
+                <button 
+                  onClick={handleOTPSubmit}
+                  className="glass-neu-red w-full !py-5 !rounded-2xl font-bold uppercase tracking-widest text-xs"
+                >
+                  Confirm Node
+                </button>
+              </motion.div>
+            </div>
+          )}
+
+          {isRegModalOpen && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+              <motion.div 
+                className="relative glass-neu p-10 w-full max-w-md bg-white"
+              >
+                <h3 className="text-3xl font-display font-bold text-slate-900 mb-8 uppercase">Nexus Register</h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400">FULL NAME</label>
+                    <input type="text" onChange={e => setRegData({...regData, name: e.target.value})} className="w-full bg-slate-50 p-4 border border-slate-100 rounded-2xl" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400">OPD NUMBER</label>
+                    <input type="text" onChange={e => setRegData({...regData, opd: e.target.value})} className="w-full bg-slate-50 p-4 border border-slate-100 rounded-2xl" placeholder="e.g. 12345" />
+                  </div>
+                  <button onClick={handleRegistrationSubmit} className="glass-neu-red w-full !py-5">Activate Profile</button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {mobileTab === 'profile' && user && profile && (
+            <motion.div 
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              className="fixed inset-0 z-[120] bg-white flex flex-col pt-12"
+            >
+              <div className="px-6 flex items-center justify-between mb-8">
+                <button onClick={() => setMobileTab('home')} className="w-12 h-12 glass-neu flex items-center justify-center"><ChevronLeft /></button>
+                <div className="flex flex-col items-center">
+                  <h2 className="text-2xl font-display font-bold uppercase" onClick={() => {
+                    // Hidden trigger for admin
+                    if (profile.opd === '511083') setIsAdminMode(true);
+                  }}>Nexus Profile</h2>
+                </div>
+                <button onClick={() => auth.signOut()} className="w-12 h-12 glass-neu flex items-center justify-center text-rose-500"><LogOut /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-6 space-y-8 pb-32">
+                 <div className="glass-neu p-10 bg-slate-900 border-none relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/20 rounded-full blur-3xl" />
+                    <div className="w-20 h-20 glass-neu-red rounded-3xl flex items-center justify-center mb-6 shadow-2xl">
+                      <User size={40} />
+                    </div>
+                    <h4 className="text-3xl font-display font-medium text-white mb-1 uppercase tracking-tighter">{profile.name}</h4>
+                    <p className="text-rose-400 font-bold text-[10px] uppercase tracking-widest">Nexus Node: {profile.opd}</p>
+                 </div>
+
+                 {/* IPD Data from Supabase */}
+                 <div className="space-y-6">
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Live Relay Status</h5>
+                    {ipdData.length > 0 ? ipdData.map((ipd, idx) => (
+                      <div key={idx} className="glass-neu p-8 bg-white border-rose-50">
+                         <div className="flex justify-between items-start mb-6">
+                            <div>
+                               <div className="text-[9px] font-bold text-rose-500 uppercase mb-1">IPD RELAY</div>
+                               <div className="text-xl font-bold text-slate-900">Bed: {ipd.bed_number}</div>
+                            </div>
+                            <div className="px-3 py-1 bg-rose-500 text-white rounded-full text-[8px] font-bold">ACTIVE</div>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-slate-50 rounded-2xl">
+                               <div className="text-[8px] font-bold text-slate-400 uppercase mb-1">ADMISSION</div>
+                               <div className="text-xs font-bold">{ipd.admission_date}</div>
+                            </div>
+                            <div className="p-4 bg-slate-50 rounded-2xl">
+                               <div className="text-[8px] font-bold text-slate-400 uppercase mb-1">CONDITION</div>
+                               <div className="text-xs font-bold text-rose-500 uppercase">{ipd.status}</div>
+                            </div>
+                         </div>
+                      </div>
+                    )) : (
+                      <div className="glass-neu p-10 text-center bg-slate-50/50">
+                        <Activity className="mx-auto mb-4 text-slate-200" size={40} />
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No Active IPD Relay Found</p>
+                      </div>
+                    )}
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                    <button className="glass-neu p-8 flex flex-col items-center gap-4">
+                       <History size={24} className="text-rose-500" />
+                       <span className="text-[9px] font-bold uppercase">History</span>
+                    </button>
+                    <button className="glass-neu p-8 flex flex-col items-center gap-4">
+                       <CreditCard size={24} className="text-rose-500" />
+                       <span className="text-[9px] font-bold uppercase">Billing</span>
+                    </button>
+                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {isAdminMode && (
+             <div className="fixed inset-0 z-[200] bg-white overflow-y-auto">
+                <AdminPanel onClose={() => setIsAdminMode(false)} />
+             </div>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* Footer (Hiding on Mobile as requested) */}
       <footer className="hidden lg:block bg-slate-900 pt-40 pb-24 px-6 lg:px-20 text-white rounded-t-[100px] relative z-10 shadow-[0_-30px_60px_rgba(0,0,0,0.2)]">
          <div className="section-width grid grid-cols-2 lg:grid-cols-4 gap-16">
             <div className="col-span-2">
@@ -862,7 +1431,15 @@ export default function App() {
          </div>
       </footer>
 
-      <MobileNav active={mobileTab} set={setMobileTab} />
+      <MobileNav active={mobileTab} set={(s) => {
+        if (s === 'profile' && !user) {
+          setIsAuthModalOpen(true);
+        } else {
+          setMobileTab(s);
+        }
+      }} />
     </div>
   );
 }
+
+const Home = ({ ...props }) => <Layout {...props} />;
