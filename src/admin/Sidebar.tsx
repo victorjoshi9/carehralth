@@ -27,6 +27,7 @@ const Sidebar = ({ activeTab, setActiveTab, onClose }: SidebarProps) => {
     { id: 'doctors', label: 'Care Staff', icon: Users },
     { id: 'testimonials', label: 'Patient Pulse', icon: MessageSquare },
     { id: 'gallery', label: 'Facility Gallery', icon: ImageIcon },
+    { id: 'preview', label: 'Live Preview', icon: Layout },
     { id: 'settings', label: 'System Config', icon: Settings },
   ];
 

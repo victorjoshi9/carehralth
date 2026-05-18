@@ -6,7 +6,7 @@ import {
   MessageSquare, HelpCircle, Star, Settings, Layout,
   Layers, Database, Play, Thermometer, LogOut, ArrowRight,
   History, CreditCard, Wallet, Share2, Pill, Ambulance,
-  UserPlus, CheckCircle2, ChevronLeft, Scissors, Home
+  UserPlus, CheckCircle2, ChevronLeft, Scissors, Home as HomeIcon
 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { db, auth, handleFirestoreError, OperationType } from './lib/firebase';
@@ -738,7 +738,7 @@ const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: nu
   );
 };
 
-const Navbar = () => (
+const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
   <>
     {/* Android Style Top Bar - Mobile Only */}
     <div className="android-top-bar flex lg:hidden !bg-white/40 !backdrop-blur-3xl !border-white/50">
@@ -747,6 +747,11 @@ const Navbar = () => (
           <Plus size={22} strokeWidth={4} />
         </div>
         <span className="font-display font-bold text-slate-900 tracking-tight text-lg">DIVYAM Hub</span>
+      </div>
+      <div className="flex lg:hidden items-center gap-2">
+        <button onClick={onAdminClick} className="w-10 h-10 glass-neu flex items-center justify-center text-rose-500">
+           <Settings size={20} />
+        </button>
       </div>
     </div>
 
@@ -782,6 +787,7 @@ const Navbar = () => (
           <motion.button 
             whileHover={{ scale: 1.05, backgroundColor: "#e11d48" }}
             whileTap={{ scale: 0.95 }}
+            onClick={onAdminClick}
             className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors !rounded-2xl shadow-3xl"
           >
             Nexus Console
@@ -795,7 +801,7 @@ const Navbar = () => (
 const MobileNav = ({ active, set }: { active: string, set: (s: string) => void }) => (
   <nav className="fixed bottom-0 inset-x-0 h-20 bg-white/95 backdrop-blur-3xl z-50 flex lg:hidden items-center justify-around px-2 border-t border-rose-50 shadow-[0_-4px_24px_rgba(0,0,0,0.02)] pb-safe">
      {[
-       { id: 'home', icon: Home, label: 'Home' },
+       { id: 'home', icon: HomeIcon, label: 'Home' },
        { id: 'fac', icon: Layers, label: 'Labs' },
        { id: 'pharm', icon: Pill, label: 'Store' },
        { id: 'sos', icon: Zap, label: 'SOS' },
@@ -990,7 +996,7 @@ export default function App() {
   return (
     <div className="min-h-screen relative overflow-x-hidden selection:bg-rose-100 selection:text-rose-900">
       <GlobalBackground />
-      <Navbar />
+      <Navbar onAdminClick={() => setIsAdminMode(true)} />
       
       <main className="relative z-10 no-scrollbar scroll-smooth">
         {sections.filter(s => s.enabled).map((section, i) => (

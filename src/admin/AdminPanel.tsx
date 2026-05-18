@@ -151,6 +151,37 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         );
       case 'gallery':
         return <GalleryManager />;
+      case 'preview':
+        return (
+          <div className="h-full flex flex-col gap-8">
+             <div className="flex items-center justify-between glass-neu p-6 bg-white/40">
+                <div>
+                   <h3 className="text-xl font-display font-medium text-slate-900 uppercase">Live Node Preview</h3>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Real-time hub synchronization active</p>
+                </div>
+                <div className="flex gap-4">
+                   <button 
+                     onClick={() => window.open(window.location.origin, '_blank')}
+                     className="glass-neu px-6 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-rose-500"
+                   >
+                      Pop out
+                   </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 content-center rounded-full">
+                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                       <span className="text-[9px] font-bold text-emerald-600 uppercase">Live</span>
+                    </div>
+                </div>
+             </div>
+             <div className="flex-1 glass-neu bg-white overflow-hidden rounded-[24px] border-slate-200 shadow-2xl relative min-h-[600px]">
+                <iframe 
+                  src={window.location.origin} 
+                  className="w-full h-full border-none"
+                  title="Nexus Preview"
+                  referrerPolicy="no-referrer"
+                />
+             </div>
+          </div>
+        );
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full opacity-20">
