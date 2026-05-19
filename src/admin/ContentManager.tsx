@@ -237,7 +237,7 @@ const ContentManager = ({ collectionName, title, schema }: ContentManagerProps) 
                     className="glass-neu-red w-full !py-5 mt-10 shadow-2xl flex items-center justify-center gap-4 group"
                   >
                     <Save size={20} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Commit to Nexus</span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Commit to Cloud</span>
                   </button>
                 </div>
               </motion.div>

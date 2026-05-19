@@ -54,10 +54,10 @@ const NexusSpinner = () => {
         transition={{ delay: 0.3 }}
         className="mt-12 text-center"
       >
-        <h2 className="text-xl font-display font-medium text-slate-900 uppercase tracking-[0.3em] mb-2">Nexus Node</h2>
+        <h2 className="text-xl font-display font-medium text-slate-900 uppercase tracking-[0.3em] mb-2">Divyam Hospital</h2>
         <div className="flex items-center gap-2 justify-center text-rose-500/60 font-bold text-[10px] uppercase tracking-widest">
           <Activity size={14} className="animate-pulse" />
-          <span>Syncing Global Parameters</span>
+          <span>Syncing Medical Data</span>
         </div>
       </motion.div>
     </div>

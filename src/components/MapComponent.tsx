@@ -51,7 +51,7 @@ export const MapComponent = () => {
       
       {/* Overlay controls or branding */}
       <div className="absolute bottom-6 right-6 z-[1000] glass-neu px-6 py-4 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-2xl pointer-events-none">
-         <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Nexus Tracking</div>
+         <div className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Divyam Tracking</div>
          <div className="text-sm font-display font-medium text-white">Bikaner Node Alpha</div>
       </div>
     </div>

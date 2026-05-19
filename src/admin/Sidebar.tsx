@@ -42,7 +42,7 @@ const Sidebar = ({ activeTab, setActiveTab, onClose }: SidebarProps) => {
             <Plus className="text-white w-6 h-6" strokeWidth={4} />
           </div>
           <div>
-            <h1 className="text-lg font-display font-medium text-slate-900 tracking-tighter">Nexus Admin</h1>
+            <h1 className="text-lg font-display font-medium text-slate-900 tracking-tighter">Divyam Admin</h1>
             <p className="text-[8px] font-bold text-rose-500 uppercase tracking-widest opacity-60">Control Console v3.1</p>
           </div>
         </div>
@@ -91,7 +91,7 @@ const Sidebar = ({ activeTab, setActiveTab, onClose }: SidebarProps) => {
           className="w-full flex items-center gap-4 px-6 py-5 glass-neu !bg-slate-900 text-white rounded-2xl shadow-2xl transition-all group"
         >
           <LogOut size={22} className="group-hover:rotate-12 transition-transform" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Logout Hub</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Exit Console</span>
         </motion.button>
       </div>
     </div>

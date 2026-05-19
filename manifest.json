@@ -1,7 +1,7 @@
 {
-  "name": "Divyam Nexus Hub",
+  "name": "Divyam Hospital",
   "short_name": "Divyam",
-  "description": "Advanced medical clinical autonomous node in Bikaner.",
+  "description": "Advanced multispeciality healthcare in Bikaner.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fdfdfd",

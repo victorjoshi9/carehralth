@@ -123,7 +123,7 @@ const SafeSpline = (props: any) => {
       <div className="w-full h-full bg-gradient-to-br from-rose-500/5 to-indigo-500/5 flex items-center justify-center">
         <div className="text-center p-8">
           <Activity size={40} className="text-rose-500/20 mx-auto mb-4" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nexus Visualizer Offline</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Divyam Visualizer Offline</p>
         </div>
       </div>
     );
@@ -246,7 +246,7 @@ const GallerySection = ({ index = 0 }: { index?: number }) => {
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
-              <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-white mb-1">Nexus Node {i + 1}</div>
+              <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-white mb-1">Facility Node {i + 1}</div>
               <div className="text-[12px] font-bold text-rose-400 uppercase tracking-widest">{img.title}</div>
             </div>
           </motion.div>
@@ -358,7 +358,7 @@ const DoctorCard = ({ doc, index }: { doc: any, index: number }) => {
     <motion.div 
       whileHover={{ y: isExpanded ? 0 : -10 }}
       layout
-      className={`glass-neu p-8 lg:p-12 text-center group flex flex-col items-center transition-all duration-500 mb-4 ${isExpanded ? 'col-span-2 lg:col-span-2 row-span-2 overflow-visible border-rose-200 ring-2 ring-rose-500/20' : 'cursor-pointer hover:border-rose-100'}`}
+      className={`glass-neu p-4 lg:p-12 text-center group flex flex-col items-center transition-all duration-500 mb-4 ${isExpanded ? 'col-span-2 lg:col-span-2 row-span-2 overflow-visible border-rose-200 ring-2 ring-rose-500/20' : 'cursor-pointer hover:border-rose-100'}`}
       onClick={() => !isExpanded && setIsExpanded(true)}
     >
       <motion.div layout className="relative w-28 lg:w-40 h-28 lg:h-40 mb-8 lg:mb-10">
@@ -480,7 +480,7 @@ const Doctors = ({ items }: { items?: any[] }) => {
 };
 
 const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }) => (
-  <SectionWrapper id="pharmacy" title="Nexus Pharmacy" subtitle="24/7 Medicine Relay" index={index}>
+  <SectionWrapper id="pharmacy" title="Divyam Pharmacy" subtitle="24/7 Medicine Relay" index={index}>
     <div className="grid lg:grid-cols-2 gap-10 px-4 lg:px-0">
       <div className="glass-neu p-12 bg-white/60 border-rose-50/50">
         <h3 className="text-3xl font-display font-medium mb-10 text-slate-900 text-3d px-1">Inventory Status</h3>
@@ -507,7 +507,7 @@ const PharmacySection = ({ items, index = 0 }: { items?: any[], index?: number }
       <div className="grid grid-cols-2 gap-6 lg:gap-8">
         {[
           { t: 'Rapid Dispatch', d: 'Bikaner 15min', i: Zap, c: 'text-rose-500' },
-          { t: 'Direct Supply', d: 'Nexus Verified', i: ShieldCheck, c: 'text-rose-500' },
+          { t: 'Direct Supply', d: 'Divyam Verified', i: ShieldCheck, c: 'text-rose-500' },
           { t: 'Cold Chain', d: 'Managed Hubs', i: Database, c: 'text-slate-900' },
           { i: MessageSquare, t: 'AI Guide', d: 'Dosage Support', c: 'text-indigo-500' }
         ].map((item, i) => (
@@ -539,7 +539,7 @@ const LaboratorySection = ({ index = 0 }: { index?: number }) => (
           </div>
           <h2 className="text-4xl lg:text-7xl font-display font-medium mb-8 uppercase leading-[0.85] tracking-tighter text-3d text-white">Diagnostic <br /><span className="text-rose-400 italic text-3d-red">Command</span></h2>
           <p className="text-slate-400 text-sm lg:text-base mb-12 leading-relaxed font-light max-w-sm">
-            Real-time biometric analysis synced to your Nexus profile. Automated collection active.
+            Real-time biometric analysis synced to your Divyam profile. Automated collection active.
           </p>
           <div className="flex flex-col sm:flex-row gap-6">
             <motion.button 
@@ -605,7 +605,7 @@ const ComprehensiveServices = () => {
   ];
 
   return (
-    <SectionWrapper id="services" title="Nexus Care" subtitle="Comprehensive Medical Streams" index={8}>
+    <SectionWrapper id="services" title="Divyam Care" subtitle="Comprehensive Medical Streams" index={8}>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 px-6 lg:px-0">
         {services.map((cat, i) => (
           <motion.div 
@@ -644,7 +644,7 @@ const StaffSection = ({ items, index = 0 }: { items?: any[], index?: number }) =
           transition={{ delay: i * 0.1, duration: 0.5 }}
           whileHover={{ y: -12, scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="glass-neu p-8 lg:p-12 text-center flex flex-col items-center group cursor-pointer"
+          className="glass-neu p-4 lg:p-12 text-center flex flex-col items-center group cursor-pointer"
         >
           <div className="w-16 h-16 lg:w-24 lg:h-24 bg-rose-50 rounded-full mb-6 lg:mb-8 flex items-center justify-center text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300 glass-neu !shadow-sm">
             <User size={36} />
@@ -741,7 +741,7 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
                 <Plus className="w-7 h-7 lg:w-8 lg:h-8" strokeWidth={4} />
               </div>
               <div className="px-4 lg:px-5 py-1.5 lg:py-2 glass-glossy rounded-full border border-red-100/50">
-                 <span className="text-[8px] lg:text-[10px] font-bold text-rose-500 uppercase tracking-[0.4em]">Nexus Core Active</span>
+                 <span className="text-[8px] lg:text-[10px] font-bold text-rose-500 uppercase tracking-[0.4em]">Divyam Core Active</span>
               </div>
             </div>
 
@@ -855,7 +855,7 @@ const Hero = ({ config, banners = [] }: { config: AppSection, banners?: any[] })
                   />
                   <div className="absolute bottom-10 left-10">
                      <p className="text-rose-500 font-bold uppercase tracking-[0.3em] text-[10px]">Tap to Flip Info</p>
-                     <h3 className="text-4xl font-display font-bold text-white uppercase tracking-tighter">Nexus v3.0</h3>
+                     <h3 className="text-2xl lg:text-4xl font-display font-bold text-white uppercase tracking-tighter">Divyam v1.0</h3>
                   </div>
                </div>
                {/* Back */}
@@ -924,7 +924,7 @@ const FacilitySection = ({ config, index = 0 }: { config: AppSection, index?: nu
              className="glass-neu p-4 lg:p-12 aspect-square lg:aspect-auto group border-white/80 bg-white/40 overflow-hidden relative shadow-all flex flex-col justify-between"
           >
             {/* Native app hint label */}
-            <div className="absolute top-4 right-4 opacity-10 font-bold text-[8px] uppercase tracking-tighter">Nexus Module</div>
+            <div className="absolute top-4 right-4 opacity-10 font-bold text-[8px] uppercase tracking-tighter">Divyam Module</div>
             
             <div className="w-12 h-12 lg:w-24 lg:h-24 glass-neu-red flex items-center justify-center text-white mb-2 lg:mb-10 group-hover:rotate-12 transition-all duration-700 !shadow-2xl !rounded-[20px] lg:!rounded-[28px] shrink-0">
               <div className="lg:hidden scale-50">{getIcon(item.title)}</div>
@@ -963,7 +963,7 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
         <div className="w-10 h-10 glass-neu !bg-rose-500 rounded-xl flex items-center justify-center text-white">
           <Plus size={22} strokeWidth={4} />
         </div>
-        <span className="font-display font-bold text-slate-900 tracking-tight text-lg">Divyam Hub</span>
+        <span className="font-display font-bold text-slate-900 tracking-tight text-lg">Divyam Hospital</span>
       </div>
       <div className="flex lg:hidden items-center gap-2">
         <button onClick={onAdminClick} className="w-10 h-10 glass-neu flex items-center justify-center text-rose-500">
@@ -975,17 +975,17 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
     {/* Web Header - Desktop Only */}
     <header className="hidden lg:flex fixed top-0 inset-x-0 z-50 pointer-events-none p-10 px-24">
       <div className="max-w-7xl mx-auto w-full flex items-center justify-between pointer-events-auto">
-        <div className="flex items-center gap-5 glass-neu px-8 py-4 border-white/50 shadow-2xl bg-white/60">
-          <div className="w-14 h-14 glass-neu-red flex items-center justify-center shadow-lg !border-none">
-            <Plus className="text-white w-7 h-7 stroke-[4px]" />
+        <div className="flex items-center gap-3 lg:gap-5 glass-neu px-4 lg:px-8 py-2 lg:py-4 border-white/50 shadow-2xl bg-white/60">
+          <div className="w-10 h-10 lg:w-14 lg:h-14 glass-neu-red flex items-center justify-center shadow-lg !border-none">
+            <Plus className="text-white w-5 h-5 lg:w-7 lg:h-7 stroke-[4px]" />
           </div>
           <div>
-            <h1 className="text-xl font-display font-medium leading-none text-slate-900 tracking-tighter text-3d px-1">Divyam Hospital</h1>
-            <p className="text-[9px] font-bold text-rose-500 uppercase tracking-[0.5em] mt-1.5 opacity-80">Bikaner Care v1.0</p>
+            <h1 className="text-sm lg:text-xl font-display font-medium leading-none text-slate-900 tracking-tighter text-3d px-1">Divyam Hospital</h1>
+            <p className="text-[7px] lg:text-[9px] font-bold text-rose-500 uppercase tracking-[0.5em] mt-1 lg:mt-1.5 opacity-80">Bikaner Care v1.0</p>
           </div>
         </div>
         
-        <nav className="flex items-center gap-12 glass-neu px-16 py-5 border-white shadow-2xl bg-white/40">
+        <nav className="hidden xl:flex items-center gap-12 glass-neu px-16 py-5 border-white shadow-2xl bg-white/40">
           {['About', 'Facility', 'Pharmacy', 'Emergency', 'Staff'].map(item => (
             <a key={item} href={`#${item.toLowerCase()}`} className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500 hover:text-rose-500 transition-all hover:scale-110">
               {item}
@@ -997,17 +997,10 @@ const Navbar = ({ onAdminClick }: { onAdminClick: () => void }) => (
           <motion.button 
             whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.9 }}
-            className="w-14 h-14 glass-neu flex items-center justify-center text-slate-500 transition-all !rounded-2xl"
+            className="w-10 h-10 lg:w-14 lg:h-14 glass-neu flex items-center justify-center text-slate-500 transition-all !rounded-xl lg:!rounded-2xl"
           >
-            <Bell size={22} />
-          </motion.button>
-          <motion.button 
-            whileHover={{ scale: 1.05, backgroundColor: "#e11d48" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onAdminClick}
-            className="glass-neu px-10 py-4 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest transition-colors !rounded-2xl shadow-3xl"
-          >
-            Patient Hub
+            <Bell size={18} className="lg:hidden" />
+            <Bell size={22} className="hidden lg:block" />
           </motion.button>
         </div>
       </div>
@@ -1127,10 +1120,16 @@ export default function App() {
 
   const handlePhoneLogin = async () => {
     try {
+      let formattedPhone = phoneNumber.trim();
+      if (!formattedPhone.startsWith('+')) {
+        // prepend default country code (India) if none provided
+        formattedPhone = '+91' + formattedPhone;
+      }
+      
       const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible'
       });
-      const result = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+      const result = await signInWithPhoneNumber(auth, formattedPhone, verifier);
       setConfirmationResult(result);
       setIsOTPModalOpen(true);
       setIsAuthModalOpen(false);
@@ -1218,7 +1217,7 @@ export default function App() {
         { name: 'Khusboo', role: 'Dental Assistant', dept: 'Dental' }
       ]},
       { id: 'gallery', type: 'gallery', enabled: true, order: 4, title: 'Facility Gallery' },
-      { id: 'location', type: 'location', enabled: true, order: 4.5, title: 'Nexus Geocode' },
+      { id: 'location', type: 'location', enabled: true, order: 4.5, title: 'Divyam Geocode' },
       { id: 'testimonials', type: 'testimonials', enabled: true, order: 5, title: 'Patient Pulse' },
       { id: 'emergency', type: 'emergency', enabled: true, order: 6, title: 'SOS Dispatch' }
     ];
@@ -1267,8 +1266,9 @@ export default function App() {
                        <div className="absolute inset-0 flex items-center justify-center scale-110">
                           <Lift3D />
                        </div>
-                       <div className="relative z-10 w-full h-full glass-glossy rounded-[60px] flex items-center justify-center border-white/50 bg-white/20">
-                          <ShieldCheck size={80} className="text-rose-500/40 animate-pulse" />
+                       <div className="absolute top-8 right-8 z-10 glass-glossy rounded-3xl p-4 border-white/50 bg-white/40 flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <div className="text-[10px] font-bold text-slate-800 uppercase tracking-widest leading-none">Vertical Capacity <br/><span className="text-slate-400">Node Hub</span></div>
                        </div>
                     </div>
                     <div>
@@ -1362,7 +1362,7 @@ export default function App() {
               {[
                 { q: 'What services does Divyam offer?', a: 'We are a multispeciality hospital offering 24/7 ICU, NICU, Dialysis, Operation Theatre, Pharmacy, and Laboratory services.' },
                 { q: 'Is emergency dispatch available 24/7?', a: 'Yes, our Bikaner unit is always active. Contact us at +91 9413912974 for immediate assistance.' },
-                { q: 'How can I book an appointment?', a: 'You can book through our Patient Hub or call our 24/7 help desk directly.' }
+                { q: 'How can I book an appointment?', a: 'You can book through our online portal or call our 24/7 help desk directly.' }
               ].map((faq, i) => (
                 <div key={i} className="glass-neu p-10 bg-white/60 border-white/40 group hover:bg-rose-50/30 transition-colors">
                    <h5 className="font-bold text-slate-800 flex items-center gap-4 text-lg lg:text-xl uppercase tracking-tighter text-3d px-1">
@@ -1450,7 +1450,7 @@ export default function App() {
               <motion.div 
                 className="relative glass-neu p-10 w-full max-w-md bg-white"
               >
-                <h3 className="text-3xl font-display font-bold text-slate-900 mb-8 uppercase">Nexus Register</h3>
+                <h3 className="text-3xl font-display font-bold text-slate-900 mb-8 uppercase">Divyam Register</h3>
                 <div className="space-y-6">
                   <div>
                     <label className="text-[10px] font-bold text-slate-400">FULL NAME</label>
@@ -1477,7 +1477,7 @@ export default function App() {
                   <h2 className="text-2xl font-display font-bold uppercase" onClick={() => {
                     // Hidden trigger for admin
                     if (profile.opd === '511083') setIsAdminMode(true);
-                  }}>Nexus Profile</h2>
+                  }}>Divyam Profile</h2>
                 </div>
                 <button onClick={() => auth.signOut()} className="w-12 h-12 glass-neu flex items-center justify-center text-rose-500"><LogOut /></button>
               </div>
@@ -1489,7 +1489,7 @@ export default function App() {
                       <User size={40} />
                     </div>
                     <h4 className="text-3xl font-display font-medium text-white mb-1 uppercase tracking-tighter">{profile.name}</h4>
-                    <p className="text-rose-400 font-bold text-[10px] uppercase tracking-widest">Nexus Node: {profile.opd}</p>
+                    <p className="text-rose-400 font-bold text-[10px] uppercase tracking-widest">OPD Node: {profile.opd}</p>
                  </div>
 
                  {/* IPD Data from Supabase */}

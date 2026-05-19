@@ -47,7 +47,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
             <div className="w-20 h-20 glass-neu-red mx-auto mb-8 flex items-center justify-center rounded-3xl shadow-3xl">
               <Lock size={32} />
             </div>
-            <h2 className="text-4xl font-display font-medium text-white tracking-tighter uppercase mb-4 text-3d-red">Nexus Console</h2>
+            <h2 className="text-4xl font-display font-medium text-white tracking-tighter uppercase mb-4 text-3d-red">Divyam Console</h2>
             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.4em]">Administrative Access Node</p>
           </div>
 
@@ -63,7 +63,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
             <div className="relative">
                <input 
                  type="password" 
-                 placeholder="NEXUS ACCESS KEY" 
+                 placeholder="DIVYAM ACCESS KEY" 
                  onChange={e => setPass(e.target.value)} 
                  className="w-full bg-slate-900/50 p-5 rounded-2xl border border-white/5 text-white outline-none focus:ring-2 focus:ring-rose-500/20 transition-all placeholder:opacity-20" 
                />
@@ -250,7 +250,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                 <iframe 
                   src={window.location.origin} 
                   className="w-full h-full border-none"
-                  title="Nexus Preview"
+                  title="App Preview"
                   referrerPolicy="no-referrer"
                 />
              </div>

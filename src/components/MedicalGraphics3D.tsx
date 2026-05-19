@@ -112,7 +112,7 @@ export const XRayMachine3D = () => {
         <div className="mt-4 flex items-center justify-center">
             <Activity className="text-rose-500 animate-pulse" size={40} />
         </div>
-        <div className="mt-auto text-[8px] font-bold text-rose-500 uppercase tracking-widest text-center">Scanning Node...</div>
+        <div className="mt-auto text-[8px] font-bold text-rose-500 uppercase tracking-widest text-center">Analyzing Data...</div>
       </motion.div>
       
       {/* Base */}
